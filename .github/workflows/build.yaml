@@ -60,4 +60,4 @@ jobs:
     - name: Generate UML diagrams
       run: |
         mkdir -p ./uml
-        uv run pyreverse -o png -A -k -d ./uml ./src/cryptoanalytics
+        uv run pyreverse -o png -A -k -d ./uml ./src/deepresearcher

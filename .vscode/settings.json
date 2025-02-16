@@ -5,7 +5,7 @@
   "python.languageServer": "Pylance",
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true,
-  "python.testing.pytestArgs": [],
+  "python.testing.cwd": ".",
   "autoDocstring.docstringFormat": "google",
   "[python]": {
     "editor.tabSize": 4,

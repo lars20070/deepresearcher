@@ -51,6 +51,7 @@
     "texw",
     "pycache",
     "TAVILY",
+    "pyproject",
   ],
   "cSpell.languageSettings": [
     {

@@ -1,0 +1,12 @@
+[project]
+name = "deepresearcher"
+version = "0.1.0"
+description = "fully local web research and report writing assistant"
+readme = "README.md"
+authors = [{ name = "Lars Nilse", email = "l.nilse@dunelm.org.uk" }]
+requires-python = ">=3.11"
+dependencies = []
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

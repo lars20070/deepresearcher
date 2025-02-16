@@ -52,3 +52,12 @@ jobs:
       run: uv run pytest -v -m "not slow" -p no:warnings
     - name: Run script with minimal example
       run: uv run minimalexample
+    - name: Install Graphviz for UML diagrams
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y graphviz
+    - name: Generate UML diagrams
+      run: |
+        mkdir -p ./uml
+        uv run pyreverse -o png -A -k -d ./uml ./src/cryptoanalytics

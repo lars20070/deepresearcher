@@ -1,0 +1,53 @@
+name: CI
+on: push
+  # pull_request:
+  #   branches:
+  #     - main
+  # push:
+  #   branches:
+  #     - main
+
+jobs:
+  ci:
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+        uv-version: ["latest"]
+        # Only run CI on Linux. Windows and macOS cost 2x and 10x more respectively.
+        os: [ubuntu-latest]
+        # os: [ubuntu-latest, windows-latest, macos-latest]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: cryptoanalytics
+    steps:
+    - name: Checkout the repository
+      uses: actions/checkout@v4.2.0
+    - name: Create .env file
+      run: |
+        echo API_KEY_TAVILY=${{ secrets.API_KEY_TAVILY }} > .env
+    - name: Install uv package manager
+      uses: astral-sh/setup-uv@v5.2.2
+      with:
+        version: ${{ matrix.uv-version }}
+        enable-cache: true
+    - name: Check uv version
+      run: uv --version
+    - name: Install dependencies
+      run: uv sync
+    - name: Check installed dependencies
+      run: |
+        uv run python --version
+        uv tree
+    - name: Build the package
+      run: uv build
+    - name: Lint the package
+      run: uvx ruff check .
+    - name: Run unit tests
+      # -v                verbose
+      # -m "not slow"     skip slow tests
+      # -p no:warnings    ignore warnings
+      run: uv run pytest -v -m "not slow" -p no:warnings
+    # - name: Run script with minimal example
+    #   run: uv run minimalexample

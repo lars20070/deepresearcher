@@ -49,6 +49,8 @@
     "virtualenv",
     "venv",
     "texw",
+    "pycache",
+    "TAVILY",
   ],
   "cSpell.languageSettings": [
     {

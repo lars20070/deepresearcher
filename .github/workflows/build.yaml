@@ -44,10 +44,10 @@ jobs:
       run: uv build
     - name: Lint the package
       run: uvx ruff check .
-    # - name: Run unit tests
-    #   # -v                verbose
-    #   # -m "not slow"     skip slow tests
-    #   # -p no:warnings    ignore warnings
-    #   run: uv run pytest -v -m "not slow" -p no:warnings
+    - name: Run unit tests
+      # -v                verbose
+      # -m "not slow"     skip slow tests
+      # -p no:warnings    ignore warnings
+      run: uv run pytest -v -m "not slow" -p no:warnings
     - name: Run script with minimal example
       run: uv run minimalexample

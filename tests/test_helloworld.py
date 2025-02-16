@@ -3,7 +3,7 @@
 from deepresearcher import HelloWorld, logger
 
 
-def test_coingecko() -> None:
+def test_helloworld() -> None:
     """
     Test HelloWorld
     """

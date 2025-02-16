@@ -49,5 +49,5 @@ jobs:
     #   # -m "not slow"     skip slow tests
     #   # -p no:warnings    ignore warnings
     #   run: uv run pytest -v -m "not slow" -p no:warnings
-    # - name: Run script with minimal example
-    #   run: uv run minimalexample
+    - name: Run script with minimal example
+      run: uv run minimalexample

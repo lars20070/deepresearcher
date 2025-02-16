@@ -54,7 +54,7 @@ jobs:
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: unit-test-logs
+        name: deepresearcher-pytest-logs
         path: deepresearcher.log
     - name: Run script with minimal example
       run: uv run minimalexample
@@ -67,3 +67,15 @@ jobs:
       run: |
         mkdir -p ./uml
         uv run pyreverse -o png -A -k -d ./uml ./src/deepresearcher
+    - name: Upload UML class diagram
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: deepresearcher-uml-classes
+        path: uml/classes.png
+    - name: Upload UML package diagram
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: deepresearcher-uml-packages
+        path: uml/packages.png

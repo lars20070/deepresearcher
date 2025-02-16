@@ -5,7 +5,9 @@ description = "fully local web research and report writing assistant"
 readme = "README.md"
 authors = [{ name = "Lars Nilse", email = "l.nilse@dunelm.org.uk" }]
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "loguru>=0.7.3",
+]
 
 [build-system]
 requires = ["hatchling"]

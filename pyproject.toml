@@ -17,9 +17,7 @@ minimalexample = "deepresearcher.helloworld:main"
 
 [tool.ruff]
 line-length = 150
-
-[tool.ruff.lint]
-select = [
+lint.select = [
   "E",   # pycodestyle
   "F",   # pyflakes
   "I",   # isort
@@ -32,9 +30,9 @@ select = [
   "PL",  # pylint
   "B",   # bugbear
   "ANN", # type annotations
-  "TCH", # type checking
+  "TC",  # type checking
 ]
-ignore = [
+lint.ignore = [
   "SIM108",  # Ignore ternary operators rule i.e. allow if-else blocks
   "PD901",   # Allow variable name `df` for dataframes
   "PLR2004", # Allow magic values

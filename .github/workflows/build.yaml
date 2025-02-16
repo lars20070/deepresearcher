@@ -25,6 +25,7 @@ jobs:
     - name: Checkout the repository
       uses: actions/checkout@v4.2.0
     - name: Create .env file
+      # Define in GitHub repository: Settings -> Secrets and variables -> Actions -> New repository secret
       run: |
         echo API_KEY_TAVILY=${{ secrets.API_KEY_TAVILY }} > .env
     - name: Install uv package manager

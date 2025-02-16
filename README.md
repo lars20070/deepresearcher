@@ -1,2 +1,2 @@
 # deepresearcher
-fully local web research and report writing assistant
+Fully local web research and report writing assistant

@@ -3,9 +3,10 @@
 # import os
 
 # import pytest
-from langchain_core.runnables import RunnableConfig
+from langchain_core.runnables import Runnable, RunnableConfig
 
 from deepresearcher.configuration import Configuration, SearchAPI
+from deepresearcher.logger import logger
 
 
 def test_search_api_values() -> None:
@@ -33,3 +34,29 @@ def test_configuration_from_runnable_config() -> None:
 #     config = Configuration.from_runnable_config()
 #     assert config.search_api == expected
 #     del os.environ["SEARCH_API"]
+
+
+def test_EXAMPLE_runnable() -> None:
+    """
+    Minimal example of the Runnable class
+    """
+    logger.info("Starting minimal example of Runnable class.")
+
+    class EchoRunnable(Runnable):
+        """Simple Runnable that echoes its input."""
+
+        def invoke(self, input: str, config: RunnableConfig = None) -> str:
+            # Accessing configuration attributes
+            run_name = config["run_name"] if config and "run_name" in config else "default_run"
+            logger.info(f"Run Name: {run_name}")
+            return input
+
+    # Create an instance of the Runnable class and its config
+    echo_runnable = EchoRunnable()
+    config = RunnableConfig(run_name="EchoRun", tags=["example", "echo"], metadata={"purpose": "demonstration"}, max_concurrency=5)
+
+    # Invoke the Runnable without and with configuration
+    result = echo_runnable.invoke("Invoke without config.")
+    logger.info(f"Return value: {result}")
+    result = echo_runnable.invoke("Invoke with config.", config=config)
+    logger.info(f"Return value: {result}")

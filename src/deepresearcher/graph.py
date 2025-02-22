@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-# from assistant.state import SummaryState, SummaryStateInput, SummaryStateOutput
 # from langgraph.graph import END, START, StateGraph
+
+# from deepresearcher.state import SummaryState, SummaryStateInput, SummaryStateOutput
 
 # # Initialize the graph
 # builder = StateGraph(

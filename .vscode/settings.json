@@ -58,6 +58,7 @@
     "pyproject",
     "xdist",
     "pydocstyle",
+    "duckduckgo",
   ],
   "cSpell.languageSettings": [
     {

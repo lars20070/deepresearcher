@@ -57,6 +57,7 @@
     "TAVILY",
     "pyproject",
     "xdist",
+    "pydocstyle",
   ],
   "cSpell.languageSettings": [
     {

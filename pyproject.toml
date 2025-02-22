@@ -41,6 +41,7 @@ lint.ignore = [
   "PLR0912", # Allow many branches
   "PLR0913", # Allow many arguments
 ]
+lint.pydocstyle.convention = "google"
 
 [build-system]
 requires = ["hatchling"]

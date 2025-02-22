@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
-# import os
-
-# import pytest
+import pytest
 from langchain_core.runnables import Runnable, RunnableConfig
 
 from deepresearcher.configuration import Configuration, SearchAPI
@@ -15,25 +13,37 @@ def test_search_api_values() -> None:
 
 
 def test_configuration_defaults() -> None:
+    """All configuration values should have default values."""
     config = Configuration()
+
     assert config.max_web_research_loops == 3
     assert config.local_llm == "llama3.2"
     assert config.search_api == SearchAPI.TAVILY
 
 
 def test_configuration_from_runnable_config() -> None:
+    """Some configuration values should stem from the RunnableConfig."""
     runnable_config = RunnableConfig(configurable={"max_web_research_loops": 5, "local_llm": "alpaca"})
     config = Configuration.from_runnable_config(runnable_config)
-    assert config.max_web_research_loops == 5
-    assert config.local_llm == "alpaca"
+
+    assert config.max_web_research_loops == 5  # RunnableConfig value overrides default value
+    assert config.local_llm == "alpaca"  # RunnableConfig value overrides default value
+    assert config.search_api == SearchAPI.TAVILY  # Default value
 
 
-# @pytest.mark.parametrize("env_val, expected", [("perplexity", SearchAPI.PERPLEXITY), ("tavily", SearchAPI.TAVILY)])
-# def test_configuration_from_env(env_val, expected) -> None:
-#     os.environ["SEARCH_API"] = env_val
-#     config = Configuration.from_runnable_config()
-#     assert config.search_api == expected
-#     del os.environ["SEARCH_API"]
+# This test runs twice, once for each pair of the arguments.
+# The first argument is the environment variable value, the second is the expected SearchAPI value in the Configuration class.
+@pytest.mark.parametrize("env_value, expected_config", [("perplexity", SearchAPI.PERPLEXITY), ("tavily", SearchAPI.TAVILY)])
+def test_configuration_from_env(monkeypatch: pytest.MonkeyPatch, env_value: str, expected_config: SearchAPI) -> None:
+    """One configuration value should stem from the environment variable. The other two from the defaults."""
+
+    logger.info(f"environmental variable SEARCH_API == {env_value}")
+    monkeypatch.setenv("SEARCH_API", env_value)
+    config = Configuration.from_runnable_config()
+
+    assert config.max_web_research_loops == 3  # Default value
+    assert config.local_llm == "llama3.2"  # Default value
+    assert config.search_api == expected_config.value  # Environment variable value overrides default value.
 
 
 def test_EXAMPLE_runnable() -> None:

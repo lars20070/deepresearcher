@@ -50,9 +50,9 @@ def perplexity_search(query: str, perplexity_search_loop_count: int) -> dict[str
                 - content (str): Snippet/summary of the content
                 - raw_content (str): Full content of the page if available
     """
+    logger.info(f"Searching the web using Perplexity for: {query}")
 
     headers = {"accept": "application/json", "content-type": "application/json", "Authorization": f"Bearer {os.getenv('PERPLEXITY_API_KEY')}"}
-
     payload = {
         "model": "sonar-pro",
         "messages": [

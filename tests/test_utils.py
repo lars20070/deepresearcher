@@ -27,8 +27,8 @@ def test_tavily_search(topic: str, load_env: None) -> None:
 
 
 def test_perplexity_search(topic: str, load_env: None) -> None:
-    # Number of search loops i.e. Perplexity API calls
-    n = 1
+    # Number of search loops
+    n = 0
 
     logger.info("Testing searching with Perplexity.")
     result = perplexity_search(topic, perplexity_search_loop_count=n)

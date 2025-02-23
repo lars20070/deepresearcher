@@ -18,7 +18,7 @@ class Configuration:
     """The configurable fields for the research assistant."""
 
     max_web_research_loops: int = 3
-    local_llm: str = "llama3.2"
+    local_llm: str = "llama3.3"
     search_api: SearchAPI = SearchAPI.TAVILY
 
     @classmethod

@@ -64,13 +64,13 @@ jobs:
         path: deepresearcher.log
     - name: Start (and then stop) LangGraph server
       run: |
-        timeout 20s uv run startserverr || exitcode=$?
+        timeout 20s uv run startserver || exitcode=$?
         if [ $exitcode -eq 124 ]; then
           echo "LangGraph server stopped after timeout as expected"
           exit 0
         else
           echo "LangGraph server stopped unexpectedly with exit code $exitcode"
-          exit 1
+          exit $exitcode
         fi
     - name: Install Graphviz for UML diagrams
       if: runner.os == 'Linux'

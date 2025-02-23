@@ -17,7 +17,7 @@ def test_configuration_defaults() -> None:
     config = Configuration()
 
     assert config.max_web_research_loops == 3
-    assert config.local_llm == "llama3.2"
+    assert config.local_llm == "llama3.3"
     assert config.search_api == SearchAPI.TAVILY
 
 
@@ -42,7 +42,7 @@ def test_configuration_from_env(monkeypatch: pytest.MonkeyPatch, env_value: str,
     config = Configuration.from_runnable_config()
 
     assert config.max_web_research_loops == 3  # Default value
-    assert config.local_llm == "llama3.2"  # Default value
+    assert config.local_llm == "llama3.3"  # Default value
     assert config.search_api == expected_config.value  # Environment variable value overrides default value.
 
 

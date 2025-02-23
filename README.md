@@ -22,7 +22,7 @@ Fully local web research and report writing assistant
 
 ## UML diagrams
 
-When trying to understand the codebase, start with the `graph` object in `src/deepresearcher/graph.py`.
+For understanding the codebase, please start with the `graph` object in `src/deepresearcher/graph.py`.
 
 ![class diagram](./uml/classes.png "Deep Researcher class structure")
 <br>*Deep Researcher class structure*

@@ -19,8 +19,8 @@ dependencies = [
   "beautifulsoup4>=4.13.3",
 ]
 
-[project.scripts]
-minimalexample = "deepresearcher.helloworld:main"
+# [project.scripts]
+# minimalexample = "deepresearcher.helloworld:main"
 
 [tool.ruff]
 line-length = 150

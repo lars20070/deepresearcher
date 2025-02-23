@@ -2,15 +2,10 @@
 
 import os
 
-# import pytest
 from deepresearcher.logger import logger
 from deepresearcher.utils import tavily_search
 
 
-# @pytest.mark.skipif(
-#     os.getenv("GITHUB_ACTIONS") == "true",
-#     reason="No API key in CI. Run only locally.",
-# )
 def test_tavily_search(topic: str, load_env: None) -> None:
     # Number of results
     n = 3

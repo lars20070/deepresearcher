@@ -18,18 +18,16 @@ from deepresearcher.state import SummaryState, SummaryStateInput, SummaryStateOu
 # Define nodes
 def generate_query(state: SummaryState, config: RunnableConfig) -> dict:
     """Generate a query for web search"""
-
-    logger.info(f"Generating query for the research topic: {state.research_topic}")
+    logger.info(f"Generating a query for the research topic: {state.research_topic}")
 
     # Format the prompt
     query_writer_instructions_formatted = query_writer_instructions.format(research_topic=state.research_topic)
-
     logger.info(f"Formatted prompt: {query_writer_instructions_formatted}")
 
     # Generate a query
     configurable = Configuration.from_runnable_config(config)
+    logger.info(f"Creating LLM model: {configurable.local_llm}")
     llm_json_mode = ChatOllama(model=configurable.local_llm, temperature=0, format="json")
-    logger.info("LLM model created.")
     result = llm_json_mode.invoke(
         [
             SystemMessage(content=query_writer_instructions_formatted),
@@ -37,7 +35,18 @@ def generate_query(state: SummaryState, config: RunnableConfig) -> dict:
         ]
     )
     logger.info(f"LLM response: {result.content}")
-    query = json.loads(result.content)
+
+    # Parse JSON response
+    try:
+        query = json.loads(result.content)
+        if not isinstance(query, dict) or "query" not in query:
+            raise ValueError("LLM response missing required 'query' field")
+    except json.JSONDecodeError as e:
+        logger.error(f"Invalid JSON in LLM response: {e}")
+        return {"search_query": f"search about {state.research_topic}"}
+    except ValueError as e:
+        logger.error(f"Invalid response structure: {e}")
+        return {"search_query": f"search about {state.research_topic}"}
 
     return {"search_query": query["query"]}
 

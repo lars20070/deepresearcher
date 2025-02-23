@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-from deepresearcher.graph import finalize_summary, generate_query, graph, route_research, summarize_sources, web_research
+from deepresearcher.graph import finalize_summary, generate_query, graph, reflect_on_summary, route_research, summarize_sources, web_research
 from deepresearcher.logger import logger
 from deepresearcher.state import SummaryState
 
@@ -38,25 +38,9 @@ def test_web_research(topic: str, load_env: None) -> None:
     os.getenv("GITHUB_ACTIONS") == "true",
     reason="Ollama not running in the CI pipeline. Run only locally.",
 )
-def test_summarize_sources(topic: str, load_env: None) -> None:
+def test_summarize_sources(topic: str, summary_state: dict) -> None:
     logger.info("Testing summarize_sources() function.")
-    state = SummaryState(
-        research_topic=topic,
-        search_query=f"Tell me about {topic}",
-        web_research_results=[
-            """Sources:\n\nSource Syzygy - (Earth Science) - Vocab, Definition, Explanations - Most relevant content \
-            from source: Syzygy is an astronomical term that describes the alignment of three celestial bodies in a \
-            straight line. This alignment is most commonly associated with the Earth, the Moon, and the Sun during \
-            events such as eclipses and the occurrence of tides. Understanding syzygy is crucial in grasping how \
-            gravitational forces affect tidal patterns on Earth and the visual phenomena observed during eclipses."""
-        ],
-        sources_gathered=[
-            "* Syzygy - (Earth Science) - Vocab, Definition, Explanations - Fiveable : https://library.fiveable.me/key-terms/hs-earth-science/syzygy"
-        ],
-        research_loop_count=42,
-        running_summary="Test summary content",
-    )
-    result = summarize_sources(state, config={})
+    result = summarize_sources(summary_state, config={})
     logger.debug(f"Summarized sources: {result}")
 
     assert "running_summary" in result
@@ -66,9 +50,12 @@ def test_summarize_sources(topic: str, load_env: None) -> None:
     os.getenv("GITHUB_ACTIONS") == "true",
     reason="Ollama not running in the CI pipeline. Run only locally.",
 )
-def test_reflect_on_summary() -> None:
+def test_reflect_on_summary(topic: str, summary_state: dict) -> None:
     logger.info("Testing reflect_on_summary() function.")
-    pass
+    result = reflect_on_summary(summary_state, config={})
+    logger.debug(f"New search query: {result}")
+
+    assert "search_query" in result
 
 
 def test_finalize_summary() -> None:

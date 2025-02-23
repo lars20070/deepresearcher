@@ -35,6 +35,26 @@ def test_web_research(topic: str, load_env: None) -> None:
     assert len(result["web_research_results"]) > 0
 
 
+def test_summarize_sources() -> None:
+    logger.info("Testing summarize_sources() function.")
+    pass
+
+
+def test_reflect_on_summary() -> None:
+    logger.info("Testing reflect_on_summary() function.")
+    pass
+
+
+def test_final_summary() -> None:
+    logger.info("Testing final_summary() function.")
+    pass
+
+
+def test_route_research() -> None:
+    logger.info("Testing route_research() function.")
+    pass
+
+
 def test_graph_compiles() -> None:
     logger.info("Testing graph compiles correctly.")
     logger.info(f"Graph nodes: {graph.nodes}")

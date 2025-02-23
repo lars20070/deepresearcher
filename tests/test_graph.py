@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-from deepresearcher.graph import generate_query, graph, web_research
+from deepresearcher.graph import finalize_summary, generate_query, graph, web_research
 from deepresearcher.logger import logger
 from deepresearcher.state import SummaryState
 
@@ -24,7 +24,6 @@ def test_generate_query_explicit(topic: str) -> None:
 
 def test_web_research(topic: str, load_env: None) -> None:
     logger.info("Testing web research.")
-    logger.debug(f"TOPIC: {topic}")
     state = SummaryState(research_topic=topic, search_query=f"Tell me about {topic}")
     result = web_research(state, config={})
     logger.debug(f"Web search result: {result}")
@@ -35,19 +34,42 @@ def test_web_research(topic: str, load_env: None) -> None:
     assert len(result["web_research_results"]) > 0
 
 
+@pytest.mark.skipif(
+    os.getenv("GITHUB_ACTIONS") == "true",
+    reason="Ollama not running in the CI pipeline. Run only locally.",
+)
 def test_summarize_sources() -> None:
     logger.info("Testing summarize_sources() function.")
     pass
 
 
+@pytest.mark.skipif(
+    os.getenv("GITHUB_ACTIONS") == "true",
+    reason="Ollama not running in the CI pipeline. Run only locally.",
+)
 def test_reflect_on_summary() -> None:
     logger.info("Testing reflect_on_summary() function.")
     pass
 
 
-def test_final_summary() -> None:
-    logger.info("Testing final_summary() function.")
-    pass
+def test_finalize_summary() -> None:
+    logger.info("Testing finalize_summary() function.")
+
+    # Create test state with summary and sources
+    state = SummaryState(
+        running_summary="Test summary content", sources_gathered=["* Source 1 : http://example1.com", "* Source 2 : http://example2.com"]
+    )
+
+    # Run finalize_summary
+    result = finalize_summary(state)
+    logger.debug(f"Finalized summary: {result}")
+
+    # Verify structure and content
+    assert "running_summary" in result
+    assert result["running_summary"].startswith("## Summary")
+    assert "### Sources:" in result["running_summary"]
+    assert "Source 1" in result["running_summary"]
+    assert "Source 2" in result["running_summary"]
 
 
 def test_route_research() -> None:

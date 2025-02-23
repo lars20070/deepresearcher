@@ -3,7 +3,7 @@
 import os
 
 from deepresearcher.logger import logger
-from deepresearcher.utils import tavily_search
+from deepresearcher.utils import format_sources, tavily_search
 
 
 def test_tavily_search(topic: str, load_env: None) -> None:
@@ -13,7 +13,7 @@ def test_tavily_search(topic: str, load_env: None) -> None:
     # Check whether TAVILY_API_KEY is set
     assert os.getenv("TAVILY_API_KEY") is not None
 
-    logger.info("Searching with Tavily.")
+    logger.info("Testing searching with Tavily.")
     result = tavily_search(topic, include_raw_content=True, max_results=n)
     logger.debug(f"Entire search result: {result}")
 
@@ -23,3 +23,13 @@ def test_tavily_search(topic: str, load_env: None) -> None:
 
     # Check if the number of results is correct
     assert len(result["results"]) == n
+
+
+def test_format_sources() -> None:
+    logger.info("Testing formatting search results.")
+    mock_results = {
+        "results": [{"title": "First Article", "url": "https://example1.com"}, {"title": "Second Article", "url": "https://example2.com"}]
+    }
+    formatted = format_sources(mock_results)
+
+    assert formatted == "* First Article : https://example1.com\n* Second Article : https://example2.com"

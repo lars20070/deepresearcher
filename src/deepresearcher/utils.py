@@ -28,3 +28,17 @@ def tavily_search(query: str, include_raw_content: bool = True, max_results: int
     tavily_client = TavilyClient()
 
     return tavily_client.search(query, max_results=max_results, include_raw_content=include_raw_content)
+
+
+def format_sources(search_results: dict) -> str:
+    """
+    Format search results into a bullet-point list of sources.
+
+    Args:
+        search_results (dict): Tavily search response containing results
+
+    Returns:
+        str: Formatted string with sources and their URLs
+    """
+    logger.info("Formatting search results")
+    return "\n".join(f"* {source['title']} : {source['url']}" for source in search_results["results"])

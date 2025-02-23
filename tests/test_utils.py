@@ -3,7 +3,7 @@
 import os
 
 from deepresearcher.logger import logger
-from deepresearcher.utils import format_sources, tavily_search
+from deepresearcher.utils import format_sources, perplexity_search, tavily_search
 
 
 def test_tavily_search(topic: str, load_env: None) -> None:
@@ -19,10 +19,28 @@ def test_tavily_search(topic: str, load_env: None) -> None:
 
     # Check whether the result contains a 'results' key
     assert "results" in result
+    logger.debug(f"Number of search results: {len(result['results'])}")
     logger.debug(f"Search result list: {result['results']}")
 
     # Check if the number of results is correct
     assert len(result["results"]) == n
+
+
+def test_perplexity_search(topic: str, load_env: None) -> None:
+    # Number of search loops i.e. Perplexity API calls
+    n = 1
+
+    logger.info("Testing searching with Perplexity.")
+    result = perplexity_search(topic, perplexity_search_loop_count=n)
+    logger.debug(f"Entire search result: {result}")
+
+    # Check whether the result contains a 'results' key
+    assert "results" in result
+    logger.debug(f"Number of search results: {len(result['results'])}")
+    logger.debug(f"Search result list: {result['results']}")
+
+    # Check if the number of results is correct
+    assert len(result["results"]) > 0  # TODO: Why is the number of results not equal the number of Perplexity search loops?
 
 
 def test_format_sources() -> None:

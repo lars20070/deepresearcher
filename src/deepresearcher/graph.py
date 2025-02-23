@@ -13,6 +13,12 @@ from deepresearcher.prompts import (
     query_writer_instructions,
 )
 from deepresearcher.state import SummaryState, SummaryStateInput, SummaryStateOutput
+from deepresearcher.utils import (
+    deduplicate_and_format_sources,
+    format_sources,
+    perplexity_search,
+    tavily_search,
+)
 
 
 # Define nodes
@@ -53,37 +59,36 @@ def generate_query(state: SummaryState, config: RunnableConfig) -> dict:
     # return {"search_query": query["query"], "search_aspect": query["aspect"]}
 
 
-# def web_research(state: SummaryState, config: RunnableConfig):
-#     """Gather information from the web"""
+def web_research(state: SummaryState, config: RunnableConfig) -> dict:
+    """Gather information from the web"""
+    logger.info(f"Web research with search query: {state.search_query}")
 
-#     logger.info(f"Web research with search query: {state.search_query}")
+    # Configure
+    configurable = Configuration.from_runnable_config(config)
 
-#     # Configure
-#     configurable = Configuration.from_runnable_config(config)
+    # Handle both cases for search_api:
+    # 1. When selected in Studio UI -> returns a string (e.g. "tavily")
+    # 2. When using default -> returns an Enum (e.g. SearchAPI.TAVILY)
+    if isinstance(configurable.search_api, str):
+        search_api = configurable.search_api
+    else:
+        search_api = configurable.search_api.value
 
-#     # Handle both cases for search_api:
-#     # 1. When selected in Studio UI -> returns a string (e.g. "tavily")
-#     # 2. When using default -> returns an Enum (e.g. SearchAPI.TAVILY)
-#     if isinstance(configurable.search_api, str):
-#         search_api = configurable.search_api
-#     else:
-#         search_api = configurable.search_api.value
+    # Search the web
+    if search_api == "tavily":
+        search_results = tavily_search(state.search_query, include_raw_content=True, max_results=1)
+        search_str = deduplicate_and_format_sources(search_results, max_tokens_per_source=1000, include_raw_content=True)
+    elif search_api == "perplexity":
+        search_results = perplexity_search(state.search_query, state.research_loop_count)
+        search_str = deduplicate_and_format_sources(search_results, max_tokens_per_source=1000, include_raw_content=False)
+    else:
+        raise ValueError(f"Unsupported search API: {configurable.search_api}")
 
-#     # Search the web
-#     if search_api == "tavily":
-#         search_results = tavily_search(state.search_query, include_raw_content=True, max_results=1)
-#         search_str = deduplicate_and_format_sources(search_results, max_tokens_per_source=1000, include_raw_content=True)
-#     elif search_api == "perplexity":
-#         search_results = perplexity_search(state.search_query, state.research_loop_count)
-#         search_str = deduplicate_and_format_sources(search_results, max_tokens_per_source=1000, include_raw_content=False)
-#     else:
-#         raise ValueError(f"Unsupported search API: {configurable.search_api}")
-
-#     return {
-#         "sources_gathered": [format_sources(search_results)],
-#         "research_loop_count": state.research_loop_count + 1,
-#         "web_research_results": [search_str],
-#     }
+    return {
+        "sources_gathered": [format_sources(search_results)],
+        "research_loop_count": state.research_loop_count + 1,
+        "web_research_results": [search_str],
+    }
 
 
 # Initialize the graph
@@ -96,11 +101,12 @@ builder = StateGraph(
 
 # Add nodes
 builder.add_node("generate_query", generate_query)
+builder.add_node("web_research", web_research)
 
 # Add edges
 builder.add_edge(START, "generate_query")
-# builder.add_edge("generate_query", "web_research")
-builder.add_edge("generate_query", END)
+builder.add_edge("generate_query", "web_research")
+builder.add_edge("web_research", END)
 
 # Compile the graph
 graph = builder.compile()

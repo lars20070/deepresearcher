@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-from deepresearcher.graph import finalize_summary, generate_query, graph, web_research
+from deepresearcher.graph import finalize_summary, generate_query, graph, route_research, web_research
 from deepresearcher.logger import logger
 from deepresearcher.state import SummaryState
 
@@ -74,7 +74,21 @@ def test_finalize_summary() -> None:
 
 def test_route_research() -> None:
     logger.info("Testing route_research() function.")
-    pass
+
+    # Test continuing research (loop count within limit)
+    state = SummaryState(research_loop_count=2)
+    route = route_research(state, config={"configurable": {"max_web_research_loops": 3}})
+    assert route == "web_research"
+
+    # Test finishing research (loop count at limit)
+    state = SummaryState(research_loop_count=3)
+    route = route_research(state, config={"configurable": {"max_web_research_loops": 3}})
+    assert route == "finalize_summary"
+
+    # Test finishing research (loop count exceeds limit)
+    state = SummaryState(research_loop_count=4)
+    route = route_research(state, config={"configurable": {"max_web_research_loops": 3}})
+    assert route == "finalize_summary"
 
 
 def test_graph_compiles() -> None:

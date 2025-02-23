@@ -179,9 +179,12 @@ def finalize_summary(state: SummaryState) -> dict:
 
 def route_research(state: SummaryState, config: RunnableConfig) -> Literal["finalize_summary", "web_research"]:
     """Route the research based on the follow-up query"""
+    logger.info("Routing the research based on the follow-up query")
 
     configurable = Configuration.from_runnable_config(config)
-    if state.research_loop_count <= configurable.max_web_research_loops:
+    logger.debug(f"Current research loop count: {state.research_loop_count}")
+    logger.debug(f"Max research loops: {configurable.max_web_research_loops}")
+    if state.research_loop_count < configurable.max_web_research_loops:
         return "web_research"
     else:
         return "finalize_summary"

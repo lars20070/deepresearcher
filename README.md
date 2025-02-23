@@ -19,3 +19,10 @@ Fully local web research and report writing assistant
     ```bash
     open -a "Google Chrome" 'https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024'
     ```
+
+## UML diagrams
+![class diagram](./uml/classes.png "Deep Researcher class structure")
+<br>*Deep Researcher class structure*
+
+![package diagram](./uml/packages.png "Deep Researcher package structure")
+<br>*Deep Researcher package structure*

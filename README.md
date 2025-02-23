@@ -24,5 +24,7 @@ Fully local web research and report writing assistant
 ![class diagram](./uml/classes.png "Deep Researcher class structure")
 <br>*Deep Researcher class structure*
 
+<br>
+
 ![package diagram](./uml/packages.png "Deep Researcher package structure")
 <br>*Deep Researcher package structure*

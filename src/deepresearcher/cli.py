@@ -3,13 +3,14 @@
 import subprocess
 import sys
 
+from dotenv import load_dotenv
+
 from deepresearcher.logger import logger
 
 
 def main() -> None:
-    logger.info("Load environmetal variables")
-    cmd = ["source", ".env"]
-    sys.exit(subprocess.call(cmd))
+    logger.info("Loading environmet variables")
+    load_dotenv()
 
     logger.info("Starting the LangGraph server")
     cmd = [

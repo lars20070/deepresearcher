@@ -11,10 +11,10 @@ def test_summary_state_defaults() -> None:
     assert state.web_research_results == []
 
 
-def test_summary_state_custom_values() -> None:
+def test_summary_state_custom_values(topic: str) -> None:
     logger.info("Testing SummaryState with custom values.")
-    state = SummaryState(research_topic="syzygy", research_loop_count=2)
-    assert state.research_topic == "syzygy"
+    state = SummaryState(research_topic=topic, research_loop_count=2)
+    assert state.research_topic == topic
     assert state.research_loop_count == 2
 
 

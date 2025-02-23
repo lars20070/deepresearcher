@@ -8,9 +8,8 @@ from deepresearcher.prompts import (
 )
 
 
-def test_queries() -> None:
+def test_queries(topic: str) -> None:
     logger.info("Testing all query templates")
-    topic = "syzygy"
 
     formatted = query_writer_instructions.format(research_topic=topic)
     assert topic in formatted

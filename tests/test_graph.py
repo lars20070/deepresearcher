@@ -12,8 +12,7 @@ from deepresearcher.state import SummaryState
     os.getenv("GITHUB_ACTIONS") == "true",
     reason="Ollama not running in the CI pipeline. Run only locally.",
 )
-def test_generate_query_explicit() -> None:
-    topic = "syzygy"
+def test_generate_query_explicit(topic: str) -> None:
     logger.info("Testing generate_query() function.")
     state = SummaryState(research_topic=topic)
     result = generate_query(state, config={})

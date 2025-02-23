@@ -13,8 +13,8 @@ def test_summary_state_defaults() -> None:
 
 def test_summary_state_custom_values() -> None:
     logger.info("Testing SummaryState with custom values.")
-    state = SummaryState(research_topic="AI", research_loop_count=2)
-    assert state.research_topic == "AI"
+    state = SummaryState(research_topic="syzygy", research_loop_count=2)
+    assert state.research_topic == "syzygy"
     assert state.research_loop_count == 2
 
 

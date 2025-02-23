@@ -7,7 +7,7 @@ from deepresearcher.state import SummaryState
 
 def test_generate_query_explicit() -> None:
     logger.info("Testing generate_query() function.")
-    state = SummaryState(research_topic="AI")
+    state = SummaryState(research_topic="syzygy")
     result = generate_query(state, config={})
     logger.info(f"Final state: {result}")
 

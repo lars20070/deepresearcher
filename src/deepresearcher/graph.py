@@ -4,6 +4,7 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.graph import END, START, StateGraph
 
 from deepresearcher.configuration import Configuration
+from deepresearcher.logger import logger
 from deepresearcher.state import SummaryState, SummaryStateInput, SummaryStateOutput
 
 
@@ -11,7 +12,7 @@ from deepresearcher.state import SummaryState, SummaryStateInput, SummaryStateOu
 def generate_query(state: SummaryState, config: RunnableConfig) -> dict:
     """Generate a query for web search"""
 
-    # logger.info(f"Generating query for the research topic: {state.research_topic}")
+    logger.info(f"Generating query for the research topic: {state.research_topic}")
 
     # # Format the prompt
     # query_writer_instructions_formatted = query_writer_instructions.format(research_topic=state.research_topic)
@@ -50,4 +51,5 @@ builder.add_node("generate_query", generate_query)
 builder.add_edge(START, "generate_query")
 builder.add_edge("generate_query", END)
 
+# Compile the graph
 graph = builder.compile()

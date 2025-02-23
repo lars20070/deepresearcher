@@ -49,6 +49,8 @@ def generate_query(state: SummaryState, config: RunnableConfig) -> dict:
         return {"search_query": f"search about {state.research_topic}"}
 
     return {"search_query": query["query"]}
+    # TODO: How can I see in LangGraph Studio not only the `query` but also the `aspect`?
+    # return {"search_query": query["query"], "search_aspect": query["aspect"]}
 
 
 # Initialize the graph

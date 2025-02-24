@@ -9,15 +9,15 @@ The codebase is a copy of the [`ollama-deep-researcher`](https://github.com/lang
     ```bash
     ollama pull llama3.3
     ```
-2. Create an `.env` file and fill in the placeholders. An empty `.env` file is fine as well..
+2. Create an `.env` file and fill in the placeholders. An empty `.env` file is fine as well.
     ```bash
     cp .env.example .env
     ```
-3. Start up the LangGraph server
+3. Start up the local LangGraph server.
     ```bash
     uv run startserver
     ```
-4. Open [LangGraph Studio](https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024) in Chrome browser
+4. Open [LangGraph Studio](https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024) in Chrome browser.
     ```bash
     open -a "Google Chrome" 'https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024'
     ```

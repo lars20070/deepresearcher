@@ -13,7 +13,7 @@ The codebase is a copy of the [`ollama-deep-researcher`](https://github.com/lang
     ```bash
     cp .env.example .env
     ```
-3. Start up the local LangGraph server
+3. Start up the LangGraph server
     ```bash
     uv run startserver
     ```

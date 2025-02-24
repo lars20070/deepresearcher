@@ -5,19 +5,15 @@ Fully local web research and report writing assistant.
 The codebase is a copy of the [`ollama-deep-researcher`](https://github.com/langchain-ai/ollama-deep-researcher) repository. It is extended with extensive testing and logging which should help in understanding and debugging the code.
 
 ## Getting started
-1. [Download Ollama](https://ollama.com/download) and pull [Llama 3.3.](https://ollama.com/library/llama3.3)
-    ```bash
-    ollama pull llama3.3
-    ```
-2. Create an `.env` file and fill in the placeholders. An empty `.env` file is fine as well.
+1. Create an `.env` file and fill in the placeholders. An empty one is fine as well.
     ```bash
     cp .env.example .env
     ```
-3. Start up the local LangGraph server.
+2. Start up the local LangGraph server.
     ```bash
     uv run startserver
     ```
-4. Open [LangGraph Studio](https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024) in Chrome browser.
+3. Open [LangGraph Studio](https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024) in Chrome browser.
     ```bash
     open -a "Google Chrome" 'https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024'
     ```

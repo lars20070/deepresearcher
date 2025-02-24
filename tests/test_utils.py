@@ -13,7 +13,7 @@ def test_duckduckgo_search(topic: str, load_env: None) -> None:
     n = 3
 
     logger.info("Testing searching with DuckDuckGo.")
-    result = duckduckgo_search(topic, max_results=n)
+    result = duckduckgo_search(topic, max_results=n, fetch_full_page=False)
     logger.debug(f"Entire search result: {result}")
 
     # Check whether the result contains a 'results' key

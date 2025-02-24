@@ -45,5 +45,9 @@ class Configuration:
         # (3) from the default values of the Configuration class
         values: dict[str, Any] = {f.name: os.environ.get(f.name.upper(), configurable.get(f.name)) for f in fields(cls) if f.init}
 
+        # Ensure max_web_research_loops is an integer
+        if "max_web_research_loops" in values and values["max_web_research_loops"]:
+            values["max_web_research_loops"] = int(values["max_web_research_loops"])
+
         # Return a new Configuration instance with the above values
         return cls(**{k: v for k, v in values.items() if v})

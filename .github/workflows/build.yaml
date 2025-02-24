@@ -25,12 +25,14 @@ jobs:
     - name: Checkout the repository
       uses: actions/checkout@v4.2.0
     - name: Create .env file
-      # Define in GitHub repository: Settings -> Secrets and variables -> Actions -> New repository secret
+      # Define secrets in GitHub repository: Settings -> Secrets and variables -> Actions -> New repository secret
       run: |
-        echo OLLAMA_BASE_URL=http://localhost:11434 > .env
-        echo OLLAMA_MODEL=llama3.3 > .env
+        echo OLLAMA_BASE_URL=http://localhost:11434 >> .env
+        echo OLLAMA_MODEL=llama3.3 >> .env
         echo TAVILY_API_KEY=${{ secrets.TAVILY_API_KEY }} > .env
         echo PERPLEXITY_API_KEY=${{ secrets.PERPLEXITY_API_KEY }} >> .env
+        echo SEARCH_API=tavily >> .env
+        echo MAX_WEB_RESEARCH_LOOPS=3 >> .env
     - name: Install uv package manager
       uses: astral-sh/setup-uv@v5.2.2
       with:

@@ -21,9 +21,9 @@ class Configuration:
 
     logger.info("Create configuration for the research assistant.")
 
-    max_web_research_loops: int = 3
+    max_web_research_loops: int = int(os.environ.get("MAX_WEB_RESEARCH_LOOPS", "3"))
     local_llm: str = os.environ.get("OLLAMA_MODEL", "llama3.3")
-    search_api: SearchAPI = SearchAPI.TAVILY
+    search_api: SearchAPI = SearchAPI(os.environ.get("SEARCH_API", SearchAPI.TAVILY.value))
     ollama_base_url: str = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434/")
 
     @classmethod

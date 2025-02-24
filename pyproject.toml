@@ -20,7 +20,8 @@ dependencies = [
 ]
 
 [project.scripts]
-startserver = "deepresearcher.cli:main"
+startserver = "deepresearcher.cli:startserver"
+uml = "deepresearcher.cli:uml"
 
 [tool.ruff]
 line-length = 150

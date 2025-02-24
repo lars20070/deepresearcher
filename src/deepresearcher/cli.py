@@ -7,9 +7,16 @@ from dotenv import load_dotenv
 
 from deepresearcher.logger import logger
 
+"""
+CLI wrappers in order to add these commands to [project.scripts] in pyproject.toml
+"""
 
-def main() -> None:
-    logger.info("Loading environmet variables")
+
+def startserver() -> None:
+    """
+    Start the LangGraph server.
+    """
+    logger.info("Loading environment variables")
     load_dotenv()
 
     logger.info("Starting the LangGraph server")
@@ -28,5 +35,21 @@ def main() -> None:
     sys.exit(subprocess.call(cmd))
 
 
-if __name__ == "__main__":
-    main()
+def uml() -> None:
+    """
+    Generate UML diagrams.
+    """
+    logger.info("Generating UML diagrams")
+    cmd = [
+        "uv",
+        "run",
+        "pyreverse",
+        "-o",
+        "png",
+        "-A",
+        "-k",
+        "-d",
+        "./uml",
+        "./src/deepresearcher",
+    ]
+    sys.exit(subprocess.call(cmd))

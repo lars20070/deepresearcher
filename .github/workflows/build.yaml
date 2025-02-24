@@ -29,10 +29,10 @@ jobs:
       run: |
         echo OLLAMA_BASE_URL=http://localhost:11434 >> .env
         echo OLLAMA_MODEL=llama3.3 >> .env
+        echo SEARCH_API=duckduckgo >> .env
+        echo MAX_WEB_RESEARCH_LOOPS=3 >> .env
         echo TAVILY_API_KEY=${{ secrets.TAVILY_API_KEY }} > .env
         echo PERPLEXITY_API_KEY=${{ secrets.PERPLEXITY_API_KEY }} >> .env
-        echo SEARCH_API=tavily >> .env
-        echo MAX_WEB_RESEARCH_LOOPS=3 >> .env
     - name: Install uv package manager
       uses: astral-sh/setup-uv@v5.2.2
       with:

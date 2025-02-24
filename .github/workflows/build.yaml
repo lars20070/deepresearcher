@@ -27,6 +27,8 @@ jobs:
     - name: Create .env file
       # Define in GitHub repository: Settings -> Secrets and variables -> Actions -> New repository secret
       run: |
+        echo OLLAMA_BASE_URL=http://localhost:11434 > .env
+        echo OLLAMA_MODEL=llama3.3 > .env
         echo TAVILY_API_KEY=${{ secrets.TAVILY_API_KEY }} > .env
         echo PERPLEXITY_API_KEY=${{ secrets.PERPLEXITY_API_KEY }} >> .env
     - name: Install uv package manager

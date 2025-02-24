@@ -25,8 +25,12 @@ jobs:
     - name: Checkout the repository
       uses: actions/checkout@v4.2.0
     - name: Create .env file
-      # Define in GitHub repository: Settings -> Secrets and variables -> Actions -> New repository secret
+      # Define secrets in GitHub repository: Settings -> Secrets and variables -> Actions -> New repository secret
       run: |
+        echo OLLAMA_BASE_URL=http://localhost:11434 >> .env
+        echo OLLAMA_MODEL=llama3.3 >> .env
+        echo SEARCH_API=duckduckgo >> .env
+        echo MAX_WEB_RESEARCH_LOOPS=3 >> .env
         echo TAVILY_API_KEY=${{ secrets.TAVILY_API_KEY }} > .env
         echo PERPLEXITY_API_KEY=${{ secrets.PERPLEXITY_API_KEY }} >> .env
     - name: Install uv package manager
@@ -54,9 +58,12 @@ jobs:
     - name: Lint the package
       run: uvx ruff check .
     - name: Run unit tests
-    # -n auto           run tests in parallel
-    # -v                verbose
-      run: uv run pytest -n auto -v
+      # -n auto    run tests in parallel
+      # -v         verbose
+      # --cov      code coverage
+      run: |
+        uv run pytest -n auto -v --cov
+        uv run coverage report
     - name: Upload logs
       uses: actions/upload-artifact@v4
       if: always()
@@ -81,7 +88,7 @@ jobs:
     - name: Generate UML diagrams
       run: |
         mkdir -p ./uml
-        uv run pyreverse -o png -A -k -d ./uml ./src/deepresearcher
+        uv run uml
     - name: Upload UML class diagram
       uses: actions/upload-artifact@v4
       if: always()

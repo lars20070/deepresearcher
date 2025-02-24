@@ -4,10 +4,68 @@ import os
 from typing import Any
 
 import requests
+from duckduckgo_search import DDGS
 from langsmith import traceable
 from tavily import TavilyClient
 
 from deepresearcher.logger import logger
+
+
+@traceable
+def duckduckgo_search(query: str, max_results: int = 3, fetch_full_page: bool = False) -> dict[str, list[dict[str, str]]]:
+    """Search the web using DuckDuckGo.
+
+    Args:
+        query (str): The search query to execute
+        max_results (int): Maximum number of results to return
+
+    Returns:
+        dict: Search response containing:
+            - results (list): List of search result dictionaries, each containing:
+                - title (str): Title of the search result
+                - url (str): URL of the search result
+                - content (str): Snippet/summary of the content
+                - raw_content (str): Same as content since DDG doesn't provide full page content
+    """
+    try:
+        with DDGS() as ddgs:
+            results = []
+            search_results = list(ddgs.text(query, max_results=max_results))
+
+            for r in search_results:
+                url = r.get("href")
+                title = r.get("title")
+                content = r.get("body")
+
+                if not all([url, title, content]):
+                    logger.info(f"Warning: Incomplete result from DuckDuckGo: {r}")
+                    continue
+
+                raw_content = content
+                if fetch_full_page:
+                    try:
+                        # Try to fetch the full page content using curl
+                        import urllib.request
+
+                        from bs4 import BeautifulSoup
+
+                        response = urllib.request.urlopen(url)
+                        html = response.read()
+                        soup = BeautifulSoup(html, "html.parser")
+                        raw_content = soup.get_text()
+
+                    except Exception as e:
+                        logger.info(f"Warning: Failed to fetch full page content for {url}: {str(e)}")
+
+                # Add result to list
+                result = {"title": title, "url": url, "content": content, "raw_content": raw_content}
+                results.append(result)
+
+            return {"results": results}
+    except Exception as e:
+        logger.info(f"Error in DuckDuckGo search: {str(e)}")
+        logger.info(f"Full error details: {type(e).__name__}")
+        return {"results": []}
 
 
 @traceable

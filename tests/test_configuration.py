@@ -8,6 +8,7 @@ from deepresearcher.logger import logger
 
 
 def test_search_api_values() -> None:
+    assert SearchAPI.DUCKDUCKGO.value == "duckduckgo"
     assert SearchAPI.PERPLEXITY.value == "perplexity"
     assert SearchAPI.TAVILY.value == "tavily"
 
@@ -18,7 +19,7 @@ def test_configuration_defaults() -> None:
 
     assert config.max_web_research_loops == 3
     assert config.local_llm == "llama3.3"
-    assert config.search_api == SearchAPI.TAVILY
+    assert config.search_api == SearchAPI.DUCKDUCKGO
 
 
 def test_configuration_from_runnable_config() -> None:
@@ -28,12 +29,14 @@ def test_configuration_from_runnable_config() -> None:
 
     assert config.max_web_research_loops == 5  # RunnableConfig value overrides default value
     assert config.local_llm == "alpaca"  # RunnableConfig value overrides default value
-    assert config.search_api == SearchAPI.TAVILY  # Default value
+    assert config.search_api == SearchAPI.DUCKDUCKGO  # Default value
 
 
 # This test runs twice, once for each pair of the arguments.
 # The first argument is the environment variable value, the second is the expected SearchAPI value in the Configuration class.
-@pytest.mark.parametrize("env_value, expected_config", [("perplexity", SearchAPI.PERPLEXITY), ("tavily", SearchAPI.TAVILY)])
+@pytest.mark.parametrize(
+    "env_value, expected_config", [("duckduckgo", SearchAPI.DUCKDUCKGO), ("perplexity", SearchAPI.PERPLEXITY), ("tavily", SearchAPI.TAVILY)]
+)
 def test_configuration_from_env(monkeypatch: pytest.MonkeyPatch, env_value: str, expected_config: SearchAPI) -> None:
     """One configuration value should stem from the environment variable. The other two from the defaults."""
 

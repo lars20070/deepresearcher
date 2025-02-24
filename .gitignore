@@ -6,7 +6,9 @@
 __pycache__/
 .pytest_cache/
 .env
+.env.backup
 *.log
+.coverage*
 
 # LangGraph
 .langgraph_api/

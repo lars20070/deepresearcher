@@ -54,9 +54,12 @@ jobs:
     - name: Lint the package
       run: uvx ruff check .
     - name: Run unit tests
-    # -n auto           run tests in parallel
-    # -v                verbose
-      run: uv run pytest -n auto -v
+      # -n auto    run tests in parallel
+      # -v         verbose
+      # --cov      code coverage
+      run: |
+        uv run pytest -n auto -v --cov
+        uv run coverage report
     - name: Upload logs
       uses: actions/upload-artifact@v4
       if: always()

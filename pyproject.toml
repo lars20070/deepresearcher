@@ -17,6 +17,7 @@ dependencies = [
   "langchain-ollama>=0.2.3",
   "duckduckgo-search>=7.4.4",
   "beautifulsoup4>=4.13.3",
+  "pytest-cov>=6.0.0",
 ]
 
 [project.scripts]
@@ -49,6 +50,21 @@ lint.ignore = [
   "PLR0913", # Allow many arguments
 ]
 lint.pydocstyle.convention = "google"
+
+[tool.coverage.run]
+branch = true
+source = ["deepresearcher"]
+parallel = true
+disable_warnings = ["module-not-measured"]
+omit = ["src/deepresearcher/cli.py"]
+
+[tool.coverage.report]
+show_missing = true  # Show line numbers of missing coverage in terminal
+skip_covered = false # Show all files, including those with full coverage
+skip_empty = true    # Skip files with no statements
+
+[tool.coverage.html]
+directory = "coverage"
 
 [build-system]
 requires = ["hatchling"]

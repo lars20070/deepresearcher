@@ -7,6 +7,8 @@ from typing import Any
 
 from langchain_core.runnables import RunnableConfig
 
+from deepresearcher.logger import logger
+
 
 class SearchAPI(Enum):
     PERPLEXITY = "perplexity"
@@ -16,6 +18,8 @@ class SearchAPI(Enum):
 @dataclass(kw_only=True)
 class Configuration:
     """The configurable fields for the research assistant."""
+
+    logger.info("Create configuration for the research assistant.")
 
     max_web_research_loops: int = 3
     local_llm: str = "llama3.3"
@@ -28,11 +32,12 @@ class Configuration:
 
         Take any standard LangChain RunnableConfig instance and extend it.
         """
+        logger.info("Create configuration for the research assistant by extending a LangChain RunnableConfig.")
         # 'configurable' is a dictionary of configuration values from RunnableConfig
         # https://python.langchain.com/api_reference/core/runnables/langchain_core.runnables.config.RunnableConfig.html#langchain_core.runnables.config.RunnableConfig.configurable
         configurable = config["configurable"] if config and "configurable" in config else {}
 
-        # Fill in the values of the Configuration instane
+        # Fill in the values of the Configuration instance
         # (1) from the environment variables, if they exist e.g. MAX_WEB_RESEARCH_LOOPS
         # (2) from the RunnableConfig, if they exist e.g. {"max_web_research_loops": 5, "local_llm": "alpaca"}
         # (3) from the default values of the Configuration class

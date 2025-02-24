@@ -5,7 +5,7 @@ Fully local web research and report writing assistant.
 The codebase is a copy of the [`ollama-deep-researcher`](https://github.com/langchain-ai/ollama-deep-researcher) repository. It is extended with extensive testing and logging which should help in understanding and debugging the code.
 
 ## Getting started
-1. [Download Ollama](https://ollama.com/download) and pull [Llama 3.](https://ollama.com/library/llama3.3)
+1. [Download Ollama](https://ollama.com/download) and pull [Llama 3.3.](https://ollama.com/library/llama3.3)
     ```bash
     ollama pull llama3.3
     ```

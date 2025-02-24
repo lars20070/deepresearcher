@@ -11,6 +11,7 @@ from deepresearcher.logger import logger
 
 
 class SearchAPI(Enum):
+    DUCKDUCKGO = "duckduckgo"
     PERPLEXITY = "perplexity"
     TAVILY = "tavily"
 

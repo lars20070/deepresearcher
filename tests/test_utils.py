@@ -5,7 +5,24 @@ import os
 import pytest
 
 from deepresearcher.logger import logger
-from deepresearcher.utils import deduplicate_and_format_sources, format_sources, perplexity_search, tavily_search
+from deepresearcher.utils import deduplicate_and_format_sources, duckduckgo_search, format_sources, perplexity_search, tavily_search
+
+
+def test_duckduckgo_search(topic: str, load_env: None) -> None:
+    # Number of results
+    n = 3
+
+    logger.info("Testing searching with DuckDuckGo.")
+    result = duckduckgo_search(topic, max_results=n)
+    logger.debug(f"Entire search result: {result}")
+
+    # Check whether the result contains a 'results' key
+    assert "results" in result
+    logger.debug(f"Number of search results: {len(result['results'])}")
+    logger.debug(f"Search result list: {result['results']}")
+
+    # Check if the number of results is correct
+    assert len(result["results"]) == n
 
 
 def test_tavily_search(topic: str, load_env: None) -> None:

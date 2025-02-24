@@ -56,7 +56,7 @@ branch = true
 source = ["deepresearcher"]
 parallel = true
 disable_warnings = ["module-not-measured"]
-omit = ["src/deepresearcher/cli.py"]
+omit = ["tests/*", "src/deepresearcher/cli.py"]
 
 [tool.coverage.report]
 show_missing = true  # Show line numbers of missing coverage in terminal

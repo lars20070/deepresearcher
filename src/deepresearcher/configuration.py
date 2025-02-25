@@ -39,11 +39,18 @@ class Configuration:
         # https://python.langchain.com/api_reference/core/runnables/langchain_core.runnables.config.RunnableConfig.html#langchain_core.runnables.config.RunnableConfig.configurable
         configurable = config["configurable"] if config and "configurable" in config else {}
 
-        # Fill in the values of the Configuration instance
-        # (1) from the environment variables, if they exist e.g. MAX_WEB_RESEARCH_LOOPS
-        # (2) from the RunnableConfig, if they exist e.g. {"max_web_research_loops": 5, "local_llm": "alpaca"}
-        # (3) from the default values of the Configuration class
-        values: dict[str, Any] = {f.name: os.environ.get(f.name.upper(), configurable.get(f.name)) for f in fields(cls) if f.init}
+        values: dict[str, Any] = {}
+        for field in fields(cls):
+            if not field.init:
+                continue
+
+            env_var_value = os.environ.get(field.name.upper())
+            config_value = configurable.get(field.name)
+
+            if env_var_value is not None:
+                values[field.name] = env_var_value
+            else:
+                values[field.name] = config_value
 
         # Ensure max_web_research_loops is an integer
         if "max_web_research_loops" in values and values["max_web_research_loops"]:

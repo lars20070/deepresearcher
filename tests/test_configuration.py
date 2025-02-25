@@ -3,7 +3,7 @@
 import pytest
 from langchain_core.runnables import Runnable, RunnableConfig
 
-from deepresearcher.configuration import Configuration, SearchAPI
+from deepresearcher.configuration import DEFAULT_REPORT_STRUCTURE, Configuration, ConfigurationReport, PlannerProvider, SearchAPI, WriterProvider
 from deepresearcher.logger import logger
 
 
@@ -11,6 +11,17 @@ def test_search_api_values() -> None:
     assert SearchAPI.DUCKDUCKGO.value == "duckduckgo"
     assert SearchAPI.PERPLEXITY.value == "perplexity"
     assert SearchAPI.TAVILY.value == "tavily"
+
+
+def test_planner_provider_values() -> None:
+    assert PlannerProvider.OPENAI.value == "openai"
+    assert PlannerProvider.GROQ.value == "groq"
+
+
+def test_writer_provider_values() -> None:
+    assert WriterProvider.ANTHROPIC.value == "anthropic"
+    assert WriterProvider.OPENAI.value == "openai"
+    assert WriterProvider.GROQ.value == "groq"
 
 
 def test_configuration_defaults() -> None:
@@ -46,6 +57,20 @@ def test_configuration_from_env(monkeypatch: pytest.MonkeyPatch, env_value: str,
     assert config.max_web_research_loops == 3  # Default value
     assert config.local_llm == "llama3.3"  # Default value
     assert config.search_api == expected_config  # Environment variable value overrides default value.
+
+
+def test_configuration_report_defaults() -> None:
+    """All configuration values should have default values."""
+    config = ConfigurationReport()
+
+    assert config.report_structure == DEFAULT_REPORT_STRUCTURE
+    assert config.number_of_queries == 2
+    assert config.max_search_depth == 2
+    assert config.planner_provider == PlannerProvider.OPENAI
+    assert config.planner_model == "o3-mini"
+    assert config.writer_provider == WriterProvider.ANTHROPIC
+    assert config.writer_model == "claude-3-5-sonnet-latest"
+    assert config.search_api == SearchAPI.DUCKDUCKGO
 
 
 def test_EXAMPLE_runnable() -> None:

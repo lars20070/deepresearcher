@@ -36,23 +36,18 @@ class Configuration(BaseModel):
         configurable: dict[str, Any] = config["configurable"] if config and "configurable" in config else {}
 
         values: dict[str, Any] = {}
-        # Loop over all fields defined on the model
-        for field_name in cls.model_fields:
-            env_var_value = os.environ.get(field_name.upper())
-            config_value = configurable.get(field_name)
-            if env_var_value is not None:
-                values[field_name] = env_var_value
-            else:
-                values[field_name] = config_value
-
-        # Cast all fields to their expected types
+        # Loop over all fields defined on the model and cast them immediately
         for field_name, model_field in cls.model_fields.items():
-            if field_name in values and values[field_name] is not None:
-                expected_type = model_field.annotation  # use the declared annotation
+            # Choose the value from the environment or the configurable dictionary
+            raw_value = os.environ.get(field_name.upper(), configurable.get(field_name))
+            if raw_value is not None:
+                expected_type = model_field.annotation  # declared type
                 try:
-                    values[field_name] = expected_type(values[field_name])
+                    # Immediately cast the value to the expected type
+                    values[field_name] = expected_type(raw_value)
                 except Exception as e:
                     logger.error(f"Error casting field '{field_name}' to {expected_type}: {e}")
+            # If the value is None, skip it (the default defined on the model will be used)
 
         # Pass only non-None values to override defaults
         filtered_values = {k: v for k, v in values.items() if v is not None}

@@ -1,25 +1,21 @@
 #!/usr/bin/env python3
 
-import operator
-from dataclasses import dataclass, field
-from typing import Annotated
+
+from pydantic import BaseModel, Field
 
 
-@dataclass(kw_only=True)
-class SummaryState:
-    research_topic: str = field(default=None)
-    search_query: str = field(default=None)
-    web_research_results: Annotated[list, operator.add] = field(default_factory=list)
-    sources_gathered: Annotated[list, operator.add] = field(default_factory=list)
-    research_loop_count: int = field(default=0)
-    running_summary: str = field(default=None)
+class SummaryState(BaseModel):
+    research_topic: str = Field(None, description="research topic")
+    search_query: str = Field(None, description="search query")
+    web_research_results: list = Field(default_factory=list)
+    sources_gathered: list = Field(default_factory=list)
+    research_loop_count: int = Field(0, description="research loop count")
+    running_summary: str = Field(None, description="running summary")
 
 
-@dataclass(kw_only=True)
-class SummaryStateInput:
-    research_topic: str = field(default=None)
+class SummaryStateInput(BaseModel):
+    research_topic: str = Field(None, description="reasearch topic")
 
 
-@dataclass(kw_only=True)
-class SummaryStateOutput:
-    running_summary: str = field(default=None)
+class SummaryStateOutput(BaseModel):
+    running_summary: str = Field(None, description="running summary")

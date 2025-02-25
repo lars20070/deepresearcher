@@ -84,11 +84,13 @@ class Configuration(BaseModel, ConfigurationMixin):
 class ConfigurationReport(BaseModel, ConfigurationMixin):
     """The configurable fields for the chatbot."""
 
-    report_structure: str = Field(DEFAULT_REPORT_STRUCTURE)  # Defaults to the default report structure
-    number_of_queries: int = Field(2)  # Number of search queries to generate per iteration
-    max_search_depth: int = Field(2)  # Maximum number of reflection + search iterations
-    planner_provider: PlannerProvider = Field(PlannerProvider.OPENAI)  # Defaults to OpenAI as provider
-    planner_model: str = Field("o3-mini")  # Defaults to OpenAI o3-mini as planner model
-    writer_provider: WriterProvider = Field(WriterProvider.ANTHROPIC)  # Defaults to Anthropic as provider
-    writer_model: str = Field("claude-3-5-sonnet-latest")  # Defaults to Anthropic as provider
-    search_api: SearchAPI = Field(SearchAPI.TAVILY)  # Default to TAVILY
+    report_structure: str = Field(os.environ.get("REPORT_STRUCTURE", DEFAULT_REPORT_STRUCTURE))  # Defaults to the default report structure
+    number_of_queries: int = Field(int(os.environ.get("NUMBER_OF_QUERIES", 2)))  # Number of search queries to generate per iteration
+    max_search_depth: int = Field(int(os.environ.get("MAX_SEARCH_DEPTH", 2)))  # Maximum number of reflection + search iterations
+    planner_provider: PlannerProvider = Field(PlannerProvider(os.environ.get("PLANNER_PROVIDER", PlannerProvider.OPENAI.value)))  # Defaults to OpenAI
+    planner_model: str = Field(os.environ.get("PLANNER_MODEL", "o3-mini"))  # Defaults to OpenAI o3-mini as planner model
+    writer_provider: WriterProvider = Field(
+        WriterProvider(os.environ.get("WRITER_PROVIDER", WriterProvider.ANTHROPIC.value))
+    )  # Defaults to Anthropic as provider
+    writer_model: str = Field(os.environ.get("WRITER_MODEL", "claude-3-5-sonnet-latest"))  # Defaults to Claude 3.5 Sonnet as writer model
+    search_api: SearchAPI = Field(SearchAPI(os.environ.get("SEARCH_API", SearchAPI.DUCKDUCKGO.value)))  # Defaults to DuckDuckGo

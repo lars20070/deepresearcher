@@ -45,11 +45,14 @@ class Configuration(BaseModel):
             else:
                 values[field_name] = config_value
 
-        # Cast to proper types
-        if values.get("max_web_research_loops") is not None:
-            values["max_web_research_loops"] = int(values["max_web_research_loops"])
-        if values.get("search_api") is not None:
-            values["search_api"] = SearchAPI(values["search_api"])
+        # Cast all fields to their expected types
+        for field_name, model_field in cls.model_fields.items():
+            if field_name in values and values[field_name] is not None:
+                expected_type = model_field.annotation  # use the declared annotation
+                try:
+                    values[field_name] = expected_type(values[field_name])
+                except Exception as e:
+                    logger.error(f"Error casting field '{field_name}' to {expected_type}: {e}")
 
         # Pass only non-None values to override defaults
         filtered_values = {k: v for k, v in values.items() if v is not None}

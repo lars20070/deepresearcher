@@ -5,17 +5,17 @@ from pydantic import BaseModel, Field
 
 
 class SummaryState(BaseModel):
-    research_topic: str = Field(None, description="research topic")
-    search_query: str = Field(None, description="search query")
+    research_topic: str = Field(None)
+    search_query: str = Field(None)
     web_research_results: list = Field(default_factory=list)
     sources_gathered: list = Field(default_factory=list)
-    research_loop_count: int = Field(0, description="research loop count")
-    running_summary: str = Field(None, description="running summary")
+    research_loop_count: int = Field(0)
+    running_summary: str = Field(None)
 
 
 class SummaryStateInput(BaseModel):
-    research_topic: str = Field(None, description="reasearch topic")
+    research_topic: str = Field(None)
 
 
 class SummaryStateOutput(BaseModel):
-    running_summary: str = Field(None, description="running summary")
+    running_summary: str = Field(None)

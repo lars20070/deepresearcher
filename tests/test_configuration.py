@@ -32,8 +32,7 @@ def test_configuration_from_runnable_config() -> None:
     assert config.search_api == SearchAPI.DUCKDUCKGO  # Default value
 
 
-# This test runs twice, once for each pair of the arguments.
-# The first argument is the environment variable value, the second is the expected SearchAPI value in the Configuration class.
+# This test runs multiple times, once for each pair of arguments.
 @pytest.mark.parametrize(
     "env_value, expected_config", [("duckduckgo", SearchAPI.DUCKDUCKGO), ("perplexity", SearchAPI.PERPLEXITY), ("tavily", SearchAPI.TAVILY)]
 )
@@ -46,7 +45,7 @@ def test_configuration_from_env(monkeypatch: pytest.MonkeyPatch, env_value: str,
 
     assert config.max_web_research_loops == 3  # Default value
     assert config.local_llm == "llama3.3"  # Default value
-    assert config.search_api == expected_config.value  # Environment variable value overrides default value.
+    assert config.search_api == expected_config  # Environment variable value overrides default value.
 
 
 def test_EXAMPLE_runnable() -> None:

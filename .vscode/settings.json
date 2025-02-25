@@ -55,6 +55,7 @@
     "xdist",
     "pydocstyle",
     "duckduckgo",
+    "groq",
   ],
   "cSpell.languageSettings": [
     {

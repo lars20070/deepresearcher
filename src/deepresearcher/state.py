@@ -64,6 +64,7 @@ class Feedback(BaseModel):
     )
 
 
+# TODO: Convert TypeDicts to Pydantic models.
 class ReportStateInput(TypedDict):
     topic: str  # Report topic
 

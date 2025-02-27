@@ -57,6 +57,21 @@ def test_configuration_from_runnable_config() -> None:
     assert config.search_api == SearchAPI.DUCKDUCKGO  # Default value
 
 
+def test_configuration_report_from_runnable_config() -> None:
+    """Some configuration values should stem from the RunnableConfig."""
+    runnable_config = RunnableConfig(configurable={"number_of_queries": 42, "planner_model": "o1"})
+    config = ConfigurationReport.from_runnable_config(runnable_config)
+
+    assert config.report_structure == DEFAULT_REPORT_STRUCTURE
+    assert config.number_of_queries == 42  # RunnableConfig value overrides default value
+    assert config.max_search_depth == 2
+    assert config.planner_provider == PlannerProvider.OPENAI
+    assert config.planner_model == "o1"  # RunnableConfig value overrides default value
+    assert config.writer_provider == WriterProvider.ANTHROPIC
+    assert config.writer_model == "claude-3-5-sonnet-latest"
+    assert config.search_api == SearchAPI.DUCKDUCKGO
+
+
 # This test runs multiple times, once for each pair of arguments.
 @pytest.mark.parametrize(
     "env_value, expected_config", [("duckduckgo", SearchAPI.DUCKDUCKGO), ("perplexity", SearchAPI.PERPLEXITY), ("tavily", SearchAPI.TAVILY)]

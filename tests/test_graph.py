@@ -2,6 +2,8 @@
 import os
 
 import pytest
+from langchain.chat_models import init_chat_model
+from langchain_core.messages import HumanMessage, SystemMessage
 
 from deepresearcher.graph import (
     finalize_summary,
@@ -127,6 +129,36 @@ async def test_generate_report_plan(topic: str, load_env: None) -> None:
     state = ReportState(topic=topic)
     result = await generate_report_plan(state, config={})
     logger.debug(f"Report plan: {result}")
+
+
+def test_EXAMPLE_chat_model(load_env: None) -> None:
+    """
+    Minimal example of a chat model in LangChain
+    https://python.langchain.com/api_reference/langchain/chat_models.html#
+    """
+    logger.info("Starting minimal example of a chat model in LangChain.")
+
+    # Ensure API key is set
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        raise ValueError("ANTHROPIC_API_KEY environment variable not set")
+
+    # Initialize the chat model
+    model = init_chat_model(
+        model="claude-3-5-sonnet-latest",
+        model_provider="anthropic",
+        temperature=0.7,
+    )
+
+    # Create messages
+    system_message = SystemMessage(content="You are an unhelpful reluctant AI assistant.")
+    user_message = HumanMessage(content="What is the meaning of life?")
+
+    # Send messages to the model
+    response = model.invoke([system_message, user_message])
+    logger.info(f"Response:\n{response.content}")
+
+    assert response.content is not None
+    assert "claude-3-5-sonnet" in response.response_metadata["model"]
 
 
 def test_graph_report_compiles() -> None:

@@ -270,23 +270,28 @@ async def generate_report_plan(state: ReportState, config: RunnableConfig) -> di
     writer_model_name = get_config_value(configurable.writer_model)
     writer_model = init_chat_model(model=writer_model_name, model_provider=writer_provider, temperature=0)
     structured_llm = writer_model.with_structured_output(Queries)
+    logger.debug(f"Writer provider: {writer_provider}")
+    logger.debug(f"Writer model: {writer_model_name}")
 
     # Format system instructions
     system_instructions_query = report_planner_query_writer_instructions.format(
         topic=topic, report_organization=report_structure, number_of_queries=number_of_queries
     )
+    logger.debug(f"System instructions:\n{system_instructions_query}")
 
     # Generate queries
     results = structured_llm.invoke(
         [SystemMessage(content=system_instructions_query)]
         + [HumanMessage(content="Generate search queries that will help with planning the sections of the report.")]
     )
+    logger.debug(f"Queries generated:\n{results.queries}")
 
     # Web search
     query_list = [query.search_query for query in results.queries]
 
     # Get the search API
     search_api = get_config_value(configurable.search_api)
+    logger.debug(f"Search API: {search_api}")
 
     # Search the web
     if search_api == "tavily":
@@ -297,6 +302,7 @@ async def generate_report_plan(state: ReportState, config: RunnableConfig) -> di
         source_str = deduplicate_and_format_sources(search_results, max_tokens_per_source=1000, include_raw_content=False)
     else:
         raise ValueError(f"Unsupported search API: {configurable.search_api}")
+    logger.debug(f"Search results:\n{source_str}")
 
     # Format system instructions
     system_instructions_sections = report_planner_instructions.format(
@@ -314,6 +320,8 @@ async def generate_report_plan(state: ReportState, config: RunnableConfig) -> di
         planner_model = configurable.planner_model
     else:
         planner_model = configurable.planner_model.value
+    logger.debug(f"Planner provider: {planner_provider}")
+    logger.debug(f"Planner model: {planner_model}")
 
     # Set the planner model
     planner_llm = init_chat_model(model=planner_model, model_provider=planner_provider)

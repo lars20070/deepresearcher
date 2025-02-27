@@ -44,7 +44,7 @@ class ConfigurationMixin:
     """Mixin class shared between all Configuration classes."""
 
     @classmethod
-    def from_runnable_config(cls, config: RunnableConfig | None = None) -> "Configuration":
+    def from_runnable_config(cls, config: RunnableConfig | None = None) -> "ConfigurationMixin":
         """
         Create a Configuration instance from a RunnableConfig.
         Values are read first from environment variables (using the uppercased field name) and then from a configurable dictionary.
@@ -55,15 +55,16 @@ class ConfigurationMixin:
         values: dict[str, Any] = {}
         # Loop over all fields defined on the model and cast them immediately
         for field_name, model_field in cls.model_fields.items():
+            logger.debug(f"Processing field: '{field_name}'")
             # Choose the value from the environment or the configurable dictionary
-            raw_value = os.environ.get(field_name.upper(), configurable.get(field_name))
-            if raw_value is not None:
+            value_new = os.environ.get(field_name.upper(), configurable.get(field_name))
+            if value_new is not None:
+                logger.debug(f"New value for field '{field_name}': {value_new}")
                 expected_type = model_field.annotation  # declared type
                 try:
-                    values[field_name] = expected_type(raw_value)
+                    values[field_name] = expected_type(value_new)
                 except Exception as e:
                     logger.error(f"Error casting field '{field_name}' to {expected_type}: {e}")
-            # If the value is None, skip it (the default defined on the model will be used)
 
         # Pass only non-None values to override defaults
         filtered_values = {k: v for k, v in values.items() if v is not None}

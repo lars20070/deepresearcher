@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
+import asyncio
 import os
+from enum import Enum
 from typing import Any
 
 import requests
 from duckduckgo_search import DDGS
 from langsmith import traceable
-from tavily import TavilyClient
+from tavily import AsyncTavilyClient, TavilyClient
 
 from deepresearcher.logger import logger
 
@@ -214,3 +216,49 @@ def deduplicate_and_format_sources(search_response: dict, max_tokens_per_source:
             formatted_text += f"Full source content limited to {max_tokens_per_source} tokens: {raw_content}\n\n"
 
     return formatted_text.strip()
+
+
+def get_config_value(value: str | Enum) -> str:
+    """
+    Helper function to handle both string and enum cases of configuration values
+    """
+    return value if isinstance(value, str) else value.value
+
+
+@traceable
+async def tavily_search_async(search_queries: list[str]) -> list[dict]:
+    """
+    Performs concurrent web searches using the Tavily API.
+
+    Args:
+        search_queries (List[SearchQuery]): List of search queries to process
+
+    Returns:
+            List[dict]: List of search responses from Tavily API, one per query. Each response has format:
+                {
+                    'query': str, # The original search query
+                    'follow_up_questions': None,
+                    'answer': None,
+                    'images': list,
+                    'results': [                     # List of search results
+                        {
+                            'title': str,            # Title of the webpage
+                            'url': str,              # URL of the result
+                            'content': str,          # Summary/snippet of content
+                            'score': float,          # Relevance score
+                            'raw_content': str|None  # Full page content if available
+                        },
+                        ...
+                    ]
+                }
+    """
+
+    search_tasks = []
+    tavily_async_client = AsyncTavilyClient()
+    for query in search_queries:
+        search_tasks.append(tavily_async_client.search(query, max_results=5, include_raw_content=True, topic="general"))
+
+    # Execute all searches concurrently
+    search_docs = await asyncio.gather(*search_tasks)
+
+    return search_docs

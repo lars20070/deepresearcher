@@ -256,7 +256,7 @@ async def generate_report_plan(state: ReportState, config: RunnableConfig) -> di
     feedback = state.get("feedback_on_report_plan", None)
 
     # Get configuration
-    configurable = Configuration.from_runnable_config(config)
+    configurable = ConfigurationReport.from_runnable_config(config)
     report_structure = configurable.report_structure
     number_of_queries = configurable.number_of_queries
 
@@ -342,6 +342,7 @@ builder_report = StateGraph(
     output=ReportStateOutput,
     config_schema=ConfigurationReport,
 )
+logger.debug(f"\n\nconfig = {ConfigurationReport}")
 
 # Add nodes
 builder_report.add_node("generate_report_plan", generate_report_plan)

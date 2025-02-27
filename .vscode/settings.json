@@ -57,6 +57,7 @@
     "duckduckgo",
     "groq",
     "pydantic",
+    "asyncio",
   ],
   "cSpell.languageSettings": [
     {

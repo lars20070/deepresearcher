@@ -3,9 +3,19 @@ import os
 
 import pytest
 
-from deepresearcher.graph import finalize_summary, generate_query, graph, reflect_on_summary, route_research, summarize_sources, web_research
+from deepresearcher.graph import (
+    finalize_summary,
+    generate_query,
+    generate_report_plan,
+    graph,
+    graph_report,
+    reflect_on_summary,
+    route_research,
+    summarize_sources,
+    web_research,
+)
 from deepresearcher.logger import logger
-from deepresearcher.state import SummaryState
+from deepresearcher.state import ReportState, SummaryState
 
 
 @pytest.mark.skipif(
@@ -38,7 +48,7 @@ def test_web_research(topic: str, load_env: None) -> None:
     os.getenv("GITHUB_ACTIONS") == "true",
     reason="Ollama not running in the CI pipeline. Run only locally.",
 )
-def test_summarize_sources(topic: str, summary_state: dict) -> None:
+def test_summarize_sources(summary_state: dict) -> None:
     logger.info("Testing summarize_sources() function.")
     result = summarize_sources(summary_state, config={})
     logger.debug(f"Summarized sources: {result}")
@@ -50,7 +60,7 @@ def test_summarize_sources(topic: str, summary_state: dict) -> None:
     os.getenv("GITHUB_ACTIONS") == "true",
     reason="Ollama not running in the CI pipeline. Run only locally.",
 )
-def test_reflect_on_summary(topic: str, summary_state: dict) -> None:
+def test_reflect_on_summary(summary_state: dict) -> None:
     logger.info("Testing reflect_on_summary() function.")
     result = reflect_on_summary(summary_state, config={})
     logger.debug(f"New search query: {result}")
@@ -104,3 +114,25 @@ def test_graph_compiles() -> None:
     assert "__start__" in graph.nodes
     assert "generate_query" in graph.nodes
     # assert "__end__" in graph.nodes # TODO: Why is __end__ not in the nodes?
+
+
+@pytest.mark.skipif(
+    os.getenv("GITHUB_ACTIONS") == "true",
+    reason="Ollama not running in the CI pipeline. Run only locally.",
+)
+@pytest.mark.asyncio
+async def test_generate_report_plan(topic: str, load_env: None) -> None:
+    logger.info("Testing generation of the report plan.")
+
+    state = ReportState(topic=topic)
+    result = await generate_report_plan(state, config={})
+    logger.debug(f"Report plan: {result}")
+
+
+def test_graph_report_compiles() -> None:
+    logger.info("Testing report graph compiles correctly.")
+    logger.info(f"Graph nodes: {graph_report.nodes}")
+
+    assert "__start__" in graph_report.nodes
+    assert "generate_report_plan" in graph_report.nodes
+    # assert "__end__" in graph_report.nodes # TODO: Why is __end__ not in the nodes?

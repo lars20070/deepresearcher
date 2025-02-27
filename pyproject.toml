@@ -23,6 +23,7 @@ dependencies = [
   "langchain-openai>=0.3.7",
   "langchain-groq>=0.2.4",
   "openai>=1.64.0",
+  "pytest-asyncio>=0.25.3",
 ]
 
 [project.scripts]

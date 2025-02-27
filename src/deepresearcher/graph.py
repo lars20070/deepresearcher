@@ -250,6 +250,7 @@ graph = builder.compile()
 # Define nodes
 async def generate_report_plan(state: ReportState, config: RunnableConfig) -> dict:
     """Generate the report plan"""
+    logger.info(f"Generating the report plan for the topic: {state['topic']}")
 
     # Inputs
     topic = state["topic"]
@@ -342,7 +343,6 @@ builder_report = StateGraph(
     output=ReportStateOutput,
     config_schema=ConfigurationReport,
 )
-logger.debug(f"\n\nconfig = {ConfigurationReport}")
 
 # Add nodes
 builder_report.add_node("generate_report_plan", generate_report_plan)

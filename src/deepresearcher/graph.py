@@ -3,26 +3,46 @@
 import json
 from typing import Literal
 
+from langchain.chat_models import init_chat_model
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_ollama import ChatOllama
 from langgraph.graph import END, START, StateGraph
 
-from deepresearcher.configuration import Configuration
+from deepresearcher.configuration import Configuration, ConfigurationReport
 from deepresearcher.logger import logger
 from deepresearcher.prompts import (
     query_writer_instructions,
     reflection_instructions,
+    report_planner_instructions,
+    report_planner_query_writer_instructions,
     summarizer_instructions,
 )
-from deepresearcher.state import SummaryState, SummaryStateInput, SummaryStateOutput
+from deepresearcher.state import (
+    Queries,
+    ReportState,
+    ReportStateInput,
+    ReportStateOutput,
+    Sections,
+    SummaryState,
+    SummaryStateInput,
+    SummaryStateOutput,
+)
 from deepresearcher.utils import (
     deduplicate_and_format_sources,
     duckduckgo_search,
     format_sources,
+    get_config_value,
     perplexity_search,
     tavily_search,
+    tavily_search_async,
 )
+
+#########################################################################
+#
+# Define the graph for the simple deep researcher assistant (no HITL)
+#
+#########################################################################
 
 
 # Define nodes
@@ -219,3 +239,115 @@ builder.add_edge("finalize_summary", END)
 
 # Compile the graph
 graph = builder.compile()
+
+#########################################################################
+#
+# Define the graph for the report deep researcher assistant (with HITL)
+#
+#########################################################################
+
+
+# Define nodes
+async def generate_report_plan(state: ReportState, config: RunnableConfig) -> dict:
+    """Generate the report plan"""
+
+    # Inputs
+    topic = state["topic"]
+    feedback = state.get("feedback_on_report_plan", None)
+
+    # Get configuration
+    configurable = Configuration.from_runnable_config(config)
+    report_structure = configurable.report_structure
+    number_of_queries = configurable.number_of_queries
+
+    # Convert JSON object to string if necessary
+    if isinstance(report_structure, dict):
+        report_structure = str(report_structure)
+
+    # Set writer model (model used for query writing and section writing)
+    writer_provider = get_config_value(configurable.writer_provider)
+    writer_model_name = get_config_value(configurable.writer_model)
+    writer_model = init_chat_model(model=writer_model_name, model_provider=writer_provider, temperature=0)
+    structured_llm = writer_model.with_structured_output(Queries)
+
+    # Format system instructions
+    system_instructions_query = report_planner_query_writer_instructions.format(
+        topic=topic, report_organization=report_structure, number_of_queries=number_of_queries
+    )
+
+    # Generate queries
+    results = structured_llm.invoke(
+        [SystemMessage(content=system_instructions_query)]
+        + [HumanMessage(content="Generate search queries that will help with planning the sections of the report.")]
+    )
+
+    # Web search
+    query_list = [query.search_query for query in results.queries]
+
+    # Get the search API
+    search_api = get_config_value(configurable.search_api)
+
+    # Search the web
+    if search_api == "tavily":
+        search_results = await tavily_search_async(query_list)
+        source_str = deduplicate_and_format_sources(search_results, max_tokens_per_source=1000, include_raw_content=False)
+    elif search_api == "perplexity":
+        search_results = perplexity_search(query_list)
+        source_str = deduplicate_and_format_sources(search_results, max_tokens_per_source=1000, include_raw_content=False)
+    else:
+        raise ValueError(f"Unsupported search API: {configurable.search_api}")
+
+    # Format system instructions
+    system_instructions_sections = report_planner_instructions.format(
+        topic=topic, report_organization=report_structure, context=source_str, feedback=feedback
+    )
+
+    # Set the planner provider
+    if isinstance(configurable.planner_provider, str):
+        planner_provider = configurable.planner_provider
+    else:
+        planner_provider = configurable.planner_provider.value
+
+    # Set the planner model
+    if isinstance(configurable.planner_model, str):
+        planner_model = configurable.planner_model
+    else:
+        planner_model = configurable.planner_model.value
+
+    # Set the planner model
+    planner_llm = init_chat_model(model=planner_model, model_provider=planner_provider)
+
+    # Generate sections
+    structured_llm = planner_llm.with_structured_output(Sections)
+    report_sections = structured_llm.invoke(
+        [SystemMessage(content=system_instructions_sections)]
+        + [
+            HumanMessage(
+                content="Generate the sections of the report. Your response must include a 'sections' field containing a list of sections. \
+                    Each section must have: name, description, plan, research, and content fields."
+            )
+        ]
+    )
+
+    # Get sections
+    sections = report_sections.sections
+
+    return {"sections": sections}
+
+
+# Initialize the graph
+builder_report = StateGraph(
+    ReportState,
+    input=ReportStateInput,
+    output=ReportStateOutput,
+    config_schema=ConfigurationReport,
+)
+
+# Add nodes
+builder_report.add_node("generate_report_plan", generate_report_plan)
+
+# Add edges
+builder_report.add_edge(START, "generate_report_plan")
+builder_report.add_edge("generate_report_plan", END)
+
+graph_report = builder_report.compile()

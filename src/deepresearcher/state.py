@@ -5,7 +5,11 @@ from typing import Annotated, Literal, TypedDict
 
 from pydantic import BaseModel, Field
 
+#################################################################
+#
 # States for the simple deep researcher assistant (no HITL)
+#
+#################################################################
 
 
 class SummaryState(BaseModel):
@@ -25,7 +29,11 @@ class SummaryStateOutput(BaseModel):
     running_summary: str = Field(None)
 
 
+#################################################################
+#
 # States for the report deep researcher assistant (with HITL)
+#
+#################################################################
 
 
 class Section(BaseModel):

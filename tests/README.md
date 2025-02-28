@@ -1,1 +1,1 @@
-`test_EXAMPLE_*` are simple examples and not testing specific functionality.
+`test_EXAMPLE_*` are simple examples for understanding the LangChain / LangGraph codebase. They do not test functionality in the `deepresearcher` package.

@@ -132,7 +132,7 @@ async def test_generate_report_plan(topic: str, load_env: None) -> None:
 
 
 @pytest.mark.skip(reason="Each API call costs money.")
-def test_EXAMPLE_chat_mode_anthropic(load_env: None) -> None:
+def test_EXAMPLE_chat_model_anthropic(topic: str, load_env: None) -> None:
     """
     Minimal example of a chat model in LangChain
     https://python.langchain.com/api_reference/langchain/chat_models.html#
@@ -152,7 +152,7 @@ def test_EXAMPLE_chat_mode_anthropic(load_env: None) -> None:
 
     # Create messages
     system_message = SystemMessage(content="You are an unhelpful reluctant AI assistant.")
-    user_message = HumanMessage(content="What is the meaning of life?")
+    user_message = HumanMessage(content=f"What is {topic}?")
 
     # Send messages to the model
     response = model.invoke([system_message, user_message])
@@ -164,7 +164,7 @@ def test_EXAMPLE_chat_mode_anthropic(load_env: None) -> None:
 
 
 @pytest.mark.skip(reason="Each API call costs money.")
-def test_EXAMPLE_chat_model_openai(load_env: None) -> None:
+def test_EXAMPLE_chat_model_openai(topic: str, load_env: None) -> None:
     """
     Minimal example of a chat model in LangChain
     https://python.langchain.com/api_reference/langchain/chat_models.html#
@@ -176,12 +176,12 @@ def test_EXAMPLE_chat_model_openai(load_env: None) -> None:
         raise ValueError("OPENAI_API_KEY environment variable not set")
 
     model = init_chat_model(model="o1-mini", model_provider="openai")
-    response = model.invoke("What is the meaning of life?")
+    response = model.invoke(f"What is {topic}?")
     logger.debug(f"Response:\n{response.content}")
     logger.debug(f"Response metadata:\n{response.response_metadata}")
 
     assert response.content is not None
-    assert "o1-mini" in response.response_metadata["model_name"]
+    assert "o1-mini" in response.response_metadata["model_name"]  # TODO: Inconsistent with Anthropic response metadata (model vs model_name)
 
 
 def test_graph_report_compiles() -> None:

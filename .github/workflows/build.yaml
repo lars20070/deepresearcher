@@ -31,11 +31,19 @@ jobs:
         echo OLLAMA_MODEL=llama3.3 >> .env
         echo SEARCH_API=duckduckgo >> .env
         echo MAX_WEB_RESEARCH_LOOPS=3 >> .env
-        echo TAVILY_API_KEY=${{ secrets.TAVILY_API_KEY }} > .env
+        echo TAVILY_API_KEY=${{ secrets.TAVILY_API_KEY }} >> .env
         echo PERPLEXITY_API_KEY=${{ secrets.PERPLEXITY_API_KEY }} >> .env
         echo OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }} >> .env
         echo ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }} >> .env
         echo GROQ_API_KEY=${{ secrets.GROQ_API_KEY }} >> .env
+    - name: Verify environment variables (safe check)
+      run: |
+        echo "Checking for presence of API keys (not showing values):"
+        grep -q "TAVILY_API_KEY=" .env && echo "✓ TAVILY_API_KEY is set" || echo "✗ TAVILY_API_KEY is missing"
+        grep -q "PERPLEXITY_API_KEY=" .env && echo "✓ PERPLEXITY_API_KEY is set" || echo "✗ PERPLEXITY_API_KEY is missing"
+        grep -q "OPENAI_API_KEY=" .env && echo "✓ OPENAI_API_KEY is set" || echo "✗ OPENAI_API_KEY is missing"
+        grep -q "ANTHROPIC_API_KEY=" .env && echo "✓ ANTHROPIC_API_KEY is set" || echo "✗ ANTHROPIC_API_KEY is missing"
+        grep -q "GROQ_API_KEY=" .env && echo "✓ GROQ_API_KEY is set" || echo "✗ GROQ_API_KEY is missing"
     - name: Install uv package manager
       uses: astral-sh/setup-uv@v5.2.2
       with:

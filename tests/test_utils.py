@@ -45,7 +45,7 @@ def test_tavily_search(topic: str, load_env: None) -> None:
     assert len(result["results"]) == n
 
 
-@pytest.mark.skip(reason="Each Perplexity API call costs money.")
+@pytest.mark.skip(reason="Each API call costs money.")
 def test_perplexity_search(topic: str, load_env: None) -> None:
     # Number of search loops
     n = 0

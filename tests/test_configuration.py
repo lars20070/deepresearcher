@@ -41,7 +41,7 @@ def test_configuration_report_defaults() -> None:
     assert config.number_of_queries == 2
     assert config.max_search_depth == 2
     assert config.planner_provider == PlannerProvider.OPENAI
-    assert config.planner_model == "o3-mini"
+    assert config.planner_model == "gpt-4o"
     assert config.writer_provider == WriterProvider.ANTHROPIC
     assert config.writer_model == "claude-3-5-sonnet-latest"
     assert config.search_api == SearchAPI.DUCKDUCKGO

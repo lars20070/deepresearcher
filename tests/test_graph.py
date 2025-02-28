@@ -131,7 +131,7 @@ async def test_generate_report_plan(topic: str, load_env: None) -> None:
     logger.debug(f"Report plan: {result}")
 
 
-# @pytest.mark.skip(reason="Each Anthropic API call costs money.")
+@pytest.mark.skip(reason="Each Anthropic API call costs money.")
 def test_EXAMPLE_chat_model(load_env: None) -> None:
     """
     Minimal example of a chat model in LangChain

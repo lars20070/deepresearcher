@@ -120,16 +120,6 @@ def test_graph_compiles() -> None:
 
 
 @pytest.mark.skip(reason="Each API call costs money.")
-@pytest.mark.asyncio
-async def test_generate_report_plan(topic: str, load_env: None) -> None:
-    logger.info("Testing generation of the report plan.")
-
-    state = ReportState(topic=topic)
-    result = await generate_report_plan(state, config={})
-    logger.debug(f"Report plan: {result}")
-
-
-@pytest.mark.skip(reason="Each API call costs money.")
 def test_EXAMPLE_chat_model_anthropic(topic: str, load_env: None) -> None:
     """
     Minimal example of a chat model in LangChain
@@ -199,6 +189,16 @@ def test_EXAMPLE_chat_model_openai(topic: str, load_env: None) -> None:
 
     assert joke_response.setup is not None
     assert joke_response.punchline is not None
+
+
+@pytest.mark.skip(reason="Each API call costs money.")
+@pytest.mark.asyncio
+async def test_generate_report_plan(topic: str, load_env: None) -> None:
+    logger.info("Testing generation of the report plan.")
+
+    state = ReportState(topic=topic)
+    result = await generate_report_plan(state, config={})
+    logger.debug(f"Report plan: {result}")
 
 
 def test_graph_report_compiles() -> None:

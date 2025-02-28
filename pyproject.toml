@@ -58,6 +58,9 @@ lint.ignore = [
 ]
 lint.pydocstyle.convention = "google"
 
+[tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "session" # Use a single event loop for all tests. Switch to "function" for a new event loop for every test (more isolation).
+
 [tool.coverage.run]
 branch = true
 source = ["deepresearcher"]

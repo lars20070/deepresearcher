@@ -4,6 +4,7 @@ import os
 import pytest
 from langchain.chat_models import init_chat_model
 from langchain_core.messages import HumanMessage, SystemMessage
+from pydantic import BaseModel, Field
 
 from deepresearcher.graph import (
     finalize_summary,
@@ -170,18 +171,37 @@ def test_EXAMPLE_chat_model_openai(topic: str, load_env: None) -> None:
     https://python.langchain.com/api_reference/langchain/chat_models.html#
     """
     logger.info("Starting minimal example of a chat model in LangChain (OpenAI).")
+    # model_name = "o1-mini"  # Does not support structured output
+    model_name = "gpt-4o"
 
     # Ensure API key is set
     if not os.environ.get("OPENAI_API_KEY"):
         raise ValueError("OPENAI_API_KEY environment variable not set")
 
-    model = init_chat_model(model="o1-mini", model_provider="openai")
+    model = init_chat_model(model=model_name, model_provider="openai")
     response = model.invoke(f"What is {topic}?")
     logger.debug(f"Response:\n{response.content}")
     logger.debug(f"Response metadata:\n{response.response_metadata}")
 
     assert response.content is not None
-    assert "o1-mini" in response.response_metadata["model_name"]  # TODO: Inconsistent with Anthropic response metadata (model vs model_name)
+    assert model_name in response.response_metadata["model_name"]  # TODO: Inconsistent with Anthropic response metadata (model vs model_name)
+
+    # Example of structured response
+    # Simply pass a Pydantic model to the LangChain interface
+
+    class Joke(BaseModel):
+        """Joke to tell user."""
+
+        setup: str = Field(description="The setup of the joke")
+        punchline: str = Field(description="The punchline to the joke")
+        rating: int | None = Field(default=None, description="How funny the joke is, from 1 to 10")
+
+    model_structured = model.with_structured_output(Joke)
+    joke_response = model_structured.invoke(f"Tell me a joke about {topic}")
+    logger.debug(f"Joke response: {joke_response}")
+
+    assert joke_response.setup is not None
+    assert joke_response.punchline is not None
 
 
 def test_graph_report_compiles() -> None:

@@ -1,1 +1,1 @@
-`test_EXAMPLE_*` are not unit tests but simple examples.
+`test_EXAMPLE_*` are simple examples and not testing specific functionality.

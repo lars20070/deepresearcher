@@ -36,9 +36,9 @@ jobs:
         echo OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }} >> .env
         echo ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }} >> .env
         echo GROQ_API_KEY=${{ secrets.GROQ_API_KEY }} >> .env
-    - name: Verify environment variables (safe check)
+    - name: Verify environment variables
       run: |
-        echo "Checking for presence of API keys (not showing values):"
+        echo "Checking presence of API keys:"
         grep -q "TAVILY_API_KEY=" .env && echo "✓ TAVILY_API_KEY is set" || echo "✗ TAVILY_API_KEY is missing"
         grep -q "PERPLEXITY_API_KEY=" .env && echo "✓ PERPLEXITY_API_KEY is set" || echo "✗ PERPLEXITY_API_KEY is missing"
         grep -q "OPENAI_API_KEY=" .env && echo "✓ OPENAI_API_KEY is set" || echo "✗ OPENAI_API_KEY is missing"

@@ -119,10 +119,7 @@ def test_graph_compiles() -> None:
     # assert "__end__" in graph.nodes # TODO: Why is __end__ not in the nodes?
 
 
-@pytest.mark.skipif(
-    os.getenv("GITHUB_ACTIONS") == "true",
-    reason="Ollama not running in the CI pipeline. Run only locally.",
-)
+@pytest.mark.skip(reason="Each API call costs money.")
 @pytest.mark.asyncio
 async def test_generate_report_plan(topic: str, load_env: None) -> None:
     logger.info("Testing generation of the report plan.")

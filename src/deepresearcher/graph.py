@@ -260,6 +260,7 @@ async def generate_report_plan(state: ReportState, config: RunnableConfig) -> di
     configurable = ConfigurationReport.from_runnable_config(config)
     report_structure = configurable.report_structure
     number_of_queries = configurable.number_of_queries
+    logger.debug(f"Complete configurable object: {configurable}")
 
     # Convert JSON object to string if necessary
     if isinstance(report_structure, dict):

@@ -65,6 +65,7 @@ class ConfigurationMixin:
                     values[field_name] = expected_type(value_new)
                 except Exception as e:
                     logger.error(f"Error casting field '{field_name}' to {expected_type}: {e}")
+                    raise ValueError(f"Failed to cast configuration field '{field_name}' to {expected_type}: {e}") from e
 
         # Pass only non-None values to override defaults
         filtered_values = {k: v for k, v in values.items() if v is not None}

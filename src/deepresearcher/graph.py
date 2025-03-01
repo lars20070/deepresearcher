@@ -43,6 +43,7 @@ from deepresearcher.utils import (
     format_sources,
     get_config_value,
     perplexity_search,
+    perplexity_search_2,
     tavily_search,
     tavily_search_async,
 )
@@ -308,7 +309,7 @@ async def generate_report_plan(state: ReportState, config: RunnableConfig) -> di
         search_results = await tavily_search_async(query_list)
         source_str = deduplicate_and_format_sources(search_results, max_tokens_per_source=1000, include_raw_content=False)
     elif search_api == "perplexity":
-        search_results = perplexity_search(query_list)
+        search_results = perplexity_search_2(query_list)
         source_str = deduplicate_and_format_sources(search_results, max_tokens_per_source=1000, include_raw_content=False)
     else:
         raise ValueError(f"Unsupported search API: {configurable.search_api}")
@@ -432,7 +433,7 @@ async def search_web(state: SectionState, config: RunnableConfig) -> dict:
         search_results = await tavily_search_async(query_list)
         source_str = deduplicate_and_format_sources(search_results, max_tokens_per_source=5000, include_raw_content=True)
     elif search_api == "perplexity":
-        search_results = perplexity_search(query_list)
+        search_results = perplexity_search_2(query_list)
         source_str = deduplicate_and_format_sources(search_results, max_tokens_per_source=5000, include_raw_content=False)
     else:
         raise ValueError(f"Unsupported search API: {configurable.search_api}")

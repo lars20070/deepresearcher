@@ -11,7 +11,7 @@ from langsmith import traceable
 from tavily import AsyncTavilyClient, TavilyClient
 
 from deepresearcher.logger import logger
-from deepresearcher.state import Section
+from deepresearcher.state import SearchQuery, Section
 
 
 @traceable
@@ -226,6 +226,26 @@ def get_config_value(value: str | Enum) -> str:
     return value if isinstance(value, str) else value.value
 
 
+def format_sections(sections: list[Section]) -> str:
+    """Format a list of sections into a string"""
+    formatted_str = ""
+    for idx, section in enumerate(sections, 1):
+        formatted_str += f"""
+            {"=" * 60}
+            Section {idx}: {section.name}
+            {"=" * 60}
+            Description:
+            {section.description}
+            Requires Research: 
+            {section.research}
+
+            Content:
+            {section.content if section.content else "[Not yet written]"}
+
+            """
+    return formatted_str
+
+
 @traceable
 async def tavily_search_async(search_queries: list[str]) -> list[dict]:
     """
@@ -265,21 +285,80 @@ async def tavily_search_async(search_queries: list[str]) -> list[dict]:
     return search_docs
 
 
-def format_sections(sections: list[Section]) -> str:
-    """Format a list of sections into a string"""
-    formatted_str = ""
-    for idx, section in enumerate(sections, 1):
-        formatted_str += f"""
-            {"=" * 60}
-            Section {idx}: {section.name}
-            {"=" * 60}
-            Description:
-            {section.description}
-            Requires Research: 
-            {section.research}
+@traceable
+def perplexity_search_2(search_queries: list[SearchQuery]) -> list[dict]:
+    """Search the web using the Perplexity API.
 
-            Content:
-            {section.content if section.content else "[Not yet written]"}
+    Args:
+        search_queries (List[SearchQuery]): List of search queries to process
 
-            """
-    return formatted_str
+    Returns:
+        List[dict]: List of search responses from Perplexity API, one per query. Each response has format:
+            {
+                'query': str,                    # The original search query
+                'follow_up_questions': None,
+                'answer': None,
+                'images': list,
+                'results': [                     # List of search results
+                    {
+                        'title': str,            # Title of the search result
+                        'url': str,              # URL of the result
+                        'content': str,          # Summary/snippet of content
+                        'score': float,          # Relevance score
+                        'raw_content': str|None  # Full content or None for secondary citations
+                    },
+                    ...
+                ]
+            }
+    """
+
+    headers = {"accept": "application/json", "content-type": "application/json", "Authorization": f"Bearer {os.getenv('PERPLEXITY_API_KEY')}"}
+
+    search_docs = []
+    for query in search_queries:
+        payload = {
+            "model": "sonar-pro",
+            "messages": [
+                {"role": "system", "content": "Search the web and provide factual information with sources."},
+                {"role": "user", "content": query},
+            ],
+        }
+
+        response = requests.post("https://api.perplexity.ai/chat/completions", headers=headers, json=payload)
+        response.raise_for_status()  # Raise exception for bad status codes
+
+        # Parse the response
+        data = response.json()
+        content = data["choices"][0]["message"]["content"]
+        citations = data.get("citations", ["https://perplexity.ai"])
+
+        # Create results list for this query
+        results = []
+
+        # First citation gets the full content
+        results.append(
+            {
+                "title": "Perplexity Search, Source 1",
+                "url": citations[0],
+                "content": content,
+                "raw_content": content,
+                "score": 1.0,  # Adding score to match Tavily format
+            }
+        )
+
+        # Add additional citations without duplicating content
+        for i, citation in enumerate(citations[1:], start=2):
+            results.append(
+                {
+                    "title": f"Perplexity Search, Source {i}",
+                    "url": citation,
+                    "content": "See primary source for full content",
+                    "raw_content": None,
+                    "score": 0.5,  # Lower score for secondary sources
+                }
+            )
+
+        # Format response to match Tavily structure
+        search_docs.append({"query": query, "follow_up_questions": None, "answer": None, "images": [], "results": results})
+
+    return search_docs

@@ -6,6 +6,10 @@ from dotenv import load_dotenv
 from deepresearcher.state import SummaryState
 
 
+def pytest_configure(config: pytest.Config) -> None:
+    config.addinivalue_line("markers", "paid: mark tests which require a paid API key")
+
+
 @pytest.fixture
 def load_env() -> None:
     """Load environment variables."""

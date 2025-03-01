@@ -119,7 +119,7 @@ def test_graph_compiles() -> None:
     # assert "__end__" in graph.nodes # TODO: Why is __end__ not in the nodes?
 
 
-@pytest.mark.skip(reason="Each API call costs money.")
+@pytest.mark.paid
 def test_EXAMPLE_chat_model_anthropic(topic: str, load_env: None) -> None:
     """
     Minimal example of a chat model in LangChain
@@ -151,7 +151,7 @@ def test_EXAMPLE_chat_model_anthropic(topic: str, load_env: None) -> None:
     assert "claude-3-5-sonnet" in response.response_metadata["model"]
 
 
-@pytest.mark.skip(reason="Each API call costs money.")
+@pytest.mark.paid
 def test_EXAMPLE_chat_model_openai(topic: str, load_env: None) -> None:
     """
     Minimal example of a chat model in LangChain
@@ -191,7 +191,7 @@ def test_EXAMPLE_chat_model_openai(topic: str, load_env: None) -> None:
     assert joke_response.punchline is not None
 
 
-@pytest.mark.skip(reason="Each API call costs money.")
+@pytest.mark.paid
 @pytest.mark.asyncio
 async def test_generate_report_plan(topic: str, load_env: None) -> None:
     logger.info("Testing generation of the report plan.")

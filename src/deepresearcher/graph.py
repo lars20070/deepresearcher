@@ -16,6 +16,7 @@ from deepresearcher.logger import logger
 from deepresearcher.prompts import (
     final_section_writer_instructions,
     query_writer_instructions,
+    query_writer_instructions_2,
     reflection_instructions,
     report_planner_instructions,
     report_planner_query_writer_instructions,
@@ -388,6 +389,7 @@ def human_feedback(state: ReportState, config: RunnableConfig) -> Command[Litera
 
 def generate_queries(state: SectionState, config: RunnableConfig) -> dict:
     """Generate search queries for a report section"""
+    logger.info(f"Generating search queries for the section: {state['section'].name}")
 
     # Get state
     section = state["section"]
@@ -403,7 +405,7 @@ def generate_queries(state: SectionState, config: RunnableConfig) -> dict:
     structured_llm = writer_model.with_structured_output(Queries)
 
     # Format system instructions
-    system_instructions = query_writer_instructions.format(section_topic=section.description, number_of_queries=number_of_queries)
+    system_instructions = query_writer_instructions_2.format(section_topic=section.description, number_of_queries=number_of_queries)
 
     # Generate queries
     queries = structured_llm.invoke(

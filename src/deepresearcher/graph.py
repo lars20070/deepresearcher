@@ -431,12 +431,13 @@ async def search_web(state: SectionState, config: RunnableConfig) -> dict:
     search_api = get_config_value(configurable.search_api)
 
     # Search the web
+    # TODO: max_tokens_per_source reduced from 5000 to 1000 due to Anthropic rate limiting. Find workaround.
     if search_api == "tavily":
         search_results = await tavily_search_async(query_list)
-        source_str = deduplicate_and_format_sources(search_results, max_tokens_per_source=5000, include_raw_content=True)
+        source_str = deduplicate_and_format_sources(search_results, max_tokens_per_source=1000, include_raw_content=True)
     elif search_api == "perplexity":
         search_results = perplexity_search_2(query_list)
-        source_str = deduplicate_and_format_sources(search_results, max_tokens_per_source=5000, include_raw_content=False)
+        source_str = deduplicate_and_format_sources(search_results, max_tokens_per_source=1000, include_raw_content=False)
     else:
         raise ValueError(f"Unsupported search API: {configurable.search_api}")
 

@@ -21,10 +21,7 @@ from deepresearcher.logger import logger
 from deepresearcher.state import ReportState, SummaryState
 
 
-@pytest.mark.skipif(
-    os.getenv("GITHUB_ACTIONS") == "true",
-    reason="Ollama not running in the CI pipeline. Run only locally.",
-)
+@pytest.mark.ollama
 def test_generate_query_explicit(topic: str) -> None:
     logger.info("Testing generate_query() function.")
     state = SummaryState(research_topic=topic)
@@ -47,10 +44,7 @@ def test_web_research(topic: str, load_env: None) -> None:
     assert len(result["web_research_results"]) > 0
 
 
-@pytest.mark.skipif(
-    os.getenv("GITHUB_ACTIONS") == "true",
-    reason="Ollama not running in the CI pipeline. Run only locally.",
-)
+@pytest.mark.ollama
 def test_summarize_sources(summary_state: dict) -> None:
     logger.info("Testing summarize_sources() function.")
     result = summarize_sources(summary_state, config={})
@@ -59,10 +53,7 @@ def test_summarize_sources(summary_state: dict) -> None:
     assert "running_summary" in result
 
 
-@pytest.mark.skipif(
-    os.getenv("GITHUB_ACTIONS") == "true",
-    reason="Ollama not running in the CI pipeline. Run only locally.",
-)
+@pytest.mark.ollama
 def test_reflect_on_summary(summary_state: dict) -> None:
     logger.info("Testing reflect_on_summary() function.")
     result = reflect_on_summary(summary_state, config={})

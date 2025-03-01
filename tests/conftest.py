@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import os
+
 import pytest
 from dotenv import load_dotenv
 
@@ -8,6 +10,17 @@ from deepresearcher.state import SummaryState
 
 def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line("markers", "paid: mark tests which require a paid API key")
+    config.addinivalue_line("markers", "ollama: mark tests which require a local Ollama instance")
+
+
+@pytest.fixture(autouse=True)
+def skip_ollama_tests(request: pytest.FixtureRequest) -> None:
+    """
+    Skip tests marked with 'ollama' when running in CI environment.
+    Run these tests only locally.
+    """
+    if request.node.get_closest_marker("ollama") and os.getenv("GITHUB_ACTIONS") == "true":
+        pytest.skip("Tests requiring Ollama skipped in CI environment")
 
 
 @pytest.fixture

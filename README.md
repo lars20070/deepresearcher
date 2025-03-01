@@ -22,10 +22,10 @@ The codebase is a copy of the [`ollama-deep-researcher`](https://github.com/lang
 
 For understanding the codebase, please start with the `graph` object in [`src/deepresearcher/graph.py`](src/deepresearcher/graph.py).
 
-![class diagram](./uml/classes.png "Deep Researcher class structure")
-<br>*Deep Researcher class structure*
+![package diagram](./uml/packages.png "Deep Researcher package structure")
+<br>*Deep Researcher package structure*
 
 <br>
 
-![package diagram](./uml/packages.png "Deep Researcher package structure")
-<br>*Deep Researcher package structure*
+![class diagram](./uml/classes.png "Deep Researcher class structure")
+<br>*Deep Researcher class structure*

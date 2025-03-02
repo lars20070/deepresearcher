@@ -5,7 +5,7 @@ import os
 import pytest
 from dotenv import load_dotenv
 
-from deepresearcher.state import SummaryState
+from deepresearcher.state import Section, SectionState, SummaryState
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -53,5 +53,25 @@ def summary_state(topic: str) -> dict:
         ],
         research_loop_count=42,
         running_summary="Test summary content",
+    )
+    return state
+
+
+@pytest.fixture
+def section_state(topic: str) -> dict:
+    """Provide a section state for unit testing."""
+    section = Section(
+        name="Core Concepts",
+        description=f"Understanding the core concepts of {topic}",
+        research=True,
+        content="",
+    )
+    state = SectionState(
+        section=section,
+        search_iterations=0,
+        search_queries=[],
+        source_str="",
+        report_sections_from_research="",
+        completed_sections=[],
     )
     return state

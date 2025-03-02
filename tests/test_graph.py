@@ -270,27 +270,10 @@ def test_human_feedback() -> None:
 
 
 @pytest.mark.paid
-def test_generate_queries(topic: str, load_env: None) -> None:
+def test_generate_queries(section_state: SectionState, load_env: None) -> None:
     logger.info("Testing generate_queries() method.")
 
-    # Create test state with a section
-    section = Section(
-        name="Core Concepts",
-        description=f"Understanding the core concepts of {topic}",
-        research=True,
-        content="",
-    )
-    state = SectionState(
-        section=section,
-        search_iterations=0,
-        search_queries=[],
-        source_str="",
-        report_sections_from_research="",
-        completed_sections=[],
-    )
-    logger.debug(f"Initial state:\n{state}")
-
-    result = generate_queries(state, config={"configurable": {}})
+    result = generate_queries(section_state, config={"configurable": {}})
     logger.debug(f"Result of generate_queries():\n{result}")
 
     assert "search_queries" in result

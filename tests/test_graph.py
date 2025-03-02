@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+from unittest.mock import patch
 
 import pytest
 from langchain.chat_models import init_chat_model
@@ -12,13 +13,14 @@ from deepresearcher.graph import (
     generate_report_plan,
     graph,
     graph_report,
+    human_feedback,
     reflect_on_summary,
     route_research,
     summarize_sources,
     web_research,
 )
 from deepresearcher.logger import logger
-from deepresearcher.state import ReportState, SummaryState
+from deepresearcher.state import ReportState, Section, SummaryState
 
 
 @pytest.mark.ollama
@@ -209,6 +211,61 @@ async def test_generate_report_plan(topic: str, load_env: None) -> None:
     state = ReportState(topic=topic)
     result = await generate_report_plan(state, config={})
     logger.debug(f"Report plan: {result}")
+
+
+def test_human_feedback() -> None:
+    logger.info("Testing human_feedback() method.")
+
+    # Create test state with sections
+    sections = [
+        Section(name="Introduction", description="Overview of the topic", plan="Introduce the main concepts", research=True, content=""),
+        Section(name="Background", description="Historical context", plan="Provide background information", research=True, content=""),
+        Section(name="Conclusion", description="Summary of findings", plan="Summarize the key points", research=False, content=""),
+    ]
+    state = ReportState(sections=sections)
+
+    # Test boolean feedback flow
+    with patch("deepresearcher.graph.interrupt", return_value=True):
+        logger.info("Testing approval flow.")
+
+        result = human_feedback(state, config={})
+        logger.debug(f"Result of human_feedback():\n{result}")
+
+        # Verify the result is a Command
+        assert hasattr(result, "goto")
+
+        # Verify we have two Send commands
+        # Only for sections 'Introduction' and 'Background' with research=True
+        assert len(result.goto) == 2
+
+        # Verify each Send command has the correct destination and payload
+        for cmd in result.goto:
+            logger.debug(f"Command: {cmd}")
+            assert cmd.node == "build_section_with_web_research"
+            assert "section" in cmd.arg
+            assert cmd.arg["section"].research is True
+            assert "search_iterations" in cmd.arg
+            assert cmd.arg["search_iterations"] == 0
+
+    # Test string feedback flow
+    test_feedback = "Please add a section about methodology"
+    with patch("deepresearcher.graph.interrupt", return_value=test_feedback):
+        logger.info("Testing suggestion feedback flow.")
+
+        result = human_feedback(state, config={})
+        logger.debug(f"Result of human_feedback():\n{result}")
+
+        # Verify the result is a Command
+        assert hasattr(result, "goto")
+
+        # Go back and update the report plan
+        # Note that `goto` is now a str instead of a list
+        assert result.goto == "generate_report_plan"
+        assert result.update == {"feedback_on_report_plan": test_feedback}
+
+    # Test error case (unsupported type)
+    with patch("deepresearcher.graph.interrupt", return_value=42), pytest.raises(TypeError):
+        human_feedback(state, config={})
 
 
 def test_graph_report_compiles() -> None:

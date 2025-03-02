@@ -260,7 +260,6 @@ graph = builder.compile()
 
 # Define nodes
 async def generate_report_plan(state: ReportState, config: RunnableConfig) -> dict:
-    """Generate the report plan"""
     logger.info(f"Generating the report plan for the topic: {state['topic']}")
 
     # Inputs
@@ -357,7 +356,7 @@ async def generate_report_plan(state: ReportState, config: RunnableConfig) -> di
 
 
 def human_feedback(state: ReportState, config: RunnableConfig) -> Command[Literal["generate_report_plan", "build_section_with_web_research"]]:
-    """Get feedback on the report plan"""
+    logger.info("Getting human feedback on the report plan")
 
     # Get sections
     sections = state["sections"]
@@ -367,7 +366,6 @@ def human_feedback(state: ReportState, config: RunnableConfig) -> Command[Litera
     )
 
     # Get feedback on the report plan from interrupt
-
     feedback = interrupt(
         f"Please provide feedback on the following report plan. \n\n{sections_str}\n\n Does the report plan meet your needs?\
             Pass 'true' to approve the report plan or provide feedback to regenerate the report plan:"

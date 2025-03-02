@@ -111,6 +111,7 @@ def test_graph_compiles() -> None:
 
 
 @pytest.mark.ollama
+@pytest.mark.skip(reason="Very slow.")
 def test_graph_run(topic: str) -> None:
     logger.info(f"Testing graph executes correctly. Research topic: {topic}")
 

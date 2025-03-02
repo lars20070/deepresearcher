@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 
 from deepresearcher.graph import (
     finalize_summary,
+    generate_queries,
     generate_query,
     generate_report_plan,
     graph,
@@ -20,7 +21,7 @@ from deepresearcher.graph import (
     web_research,
 )
 from deepresearcher.logger import logger
-from deepresearcher.state import ReportState, Section, SummaryState
+from deepresearcher.state import ReportState, Section, SectionState, SummaryState
 
 
 @pytest.mark.ollama
@@ -266,6 +267,35 @@ def test_human_feedback() -> None:
     # Test error case (unsupported type)
     with patch("deepresearcher.graph.interrupt", return_value=42), pytest.raises(TypeError):
         human_feedback(state, config={})
+
+
+@pytest.mark.paid
+def test_generate_queries(topic: str, load_env: None) -> None:
+    logger.info("Testing generate_queries() method.")
+
+    # Create test state with a section
+    section = Section(
+        name="Core Concepts",
+        description=f"Understanding the core concepts of {topic}",
+        research=True,
+        content="",
+    )
+    state = SectionState(
+        section=section,
+        search_iterations=0,
+        search_queries=[],
+        source_str="",
+        report_sections_from_research="",
+        completed_sections=[],
+    )
+    logger.debug(f"Initial state:\n{state}")
+
+    result = generate_queries(state, config={"configurable": {}})
+    logger.debug(f"Result of generate_queries():\n{result}")
+
+    assert "search_queries" in result
+    assert len(result["search_queries"]) > 0
+    assert result["search_queries"][0].search_query is not None
 
 
 def test_graph_report_compiles() -> None:

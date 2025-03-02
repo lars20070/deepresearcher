@@ -5,7 +5,7 @@ import os
 import pytest
 from dotenv import load_dotenv
 
-from deepresearcher.state import Section, SectionState, SummaryState
+from deepresearcher.state import SearchQuery, Section, SectionState, SummaryState
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -66,10 +66,12 @@ def section_state(topic: str) -> dict:
         research=True,
         content="",
     )
+    query_1 = SearchQuery(search_query="syzygy astronomy definition celestial alignment planets")
+    query_2 = SearchQuery(search_query="syzygy astronomical phenomena effects tides orbital mechanics")
     state = SectionState(
         section=section,
         search_iterations=0,
-        search_queries=[],
+        search_queries=[query_1, query_2],
         source_str="",
         report_sections_from_research="",
         completed_sections=[],

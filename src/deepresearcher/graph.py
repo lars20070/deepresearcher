@@ -415,6 +415,7 @@ def generate_queries(state: SectionState, config: RunnableConfig) -> dict:
 
 async def search_web(state: SectionState, config: RunnableConfig) -> dict:
     """Search the web for each query, then return a list of raw sources and a formatted string of sources."""
+    logger.info("Searching the web for each query")
 
     # Get state
     search_queries = state["search_queries"]

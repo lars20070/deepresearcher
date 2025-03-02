@@ -17,6 +17,7 @@ from deepresearcher.graph import (
     human_feedback,
     reflect_on_summary,
     route_research,
+    search_web,
     summarize_sources,
     web_research,
 )
@@ -279,6 +280,19 @@ def test_generate_queries(section_state: SectionState, load_env: None) -> None:
     assert "search_queries" in result
     assert len(result["search_queries"]) > 0
     assert result["search_queries"][0].search_query is not None
+
+
+@pytest.mark.paid
+@pytest.mark.asyncio
+async def test_search_web(section_state: SectionState, load_env: None) -> None:
+    logger.info("Testing search_web() method.")
+
+    result = await search_web(section_state, config={"configurable": {}})
+
+    assert "source_str" in result
+    assert result["source_str"] is not None
+    assert "search_iterations" in result
+    assert result["search_iterations"] > 0
 
 
 def test_graph_report_compiles() -> None:

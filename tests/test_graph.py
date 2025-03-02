@@ -110,6 +110,24 @@ def test_graph_compiles() -> None:
     # assert "__end__" in graph.nodes # TODO: Why is __end__ not in the nodes?
 
 
+@pytest.mark.ollama
+def test_graph_run(topic: str) -> None:
+    logger.info(f"Testing graph executes correctly. Research topic: {topic}")
+
+    # Create input state
+    input_state = SummaryState(research_topic=topic)
+
+    # Execute the graph
+    result = graph.invoke(input_state)
+    logger.debug(f"Result of entire workflow:\n{result['running_summary']}")
+
+    # Validate the result
+    assert result is not None
+    assert "running_summary" in result
+    assert result["running_summary"].startswith("## Summary")
+    assert "### Sources:" in result["running_summary"]
+
+
 @pytest.mark.paid
 def test_EXAMPLE_chat_model_anthropic(topic: str, load_env: None) -> None:
     """

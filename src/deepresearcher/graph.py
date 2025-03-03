@@ -10,6 +10,7 @@ from langchain_ollama import ChatOllama
 from langgraph.constants import Send
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, interrupt
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 from deepresearcher.configuration import Configuration, ConfigurationReport
 from deepresearcher.logger import logger
@@ -259,6 +260,7 @@ graph = builder.compile()
 
 
 # Define nodes
+@retry(wait=wait_exponential(min=1, max=60), stop=stop_after_attempt(5))
 async def generate_report_plan(state: ReportState, config: RunnableConfig) -> dict:
     logger.info(f"Generating the report plan for the topic: {state['topic']}")
 

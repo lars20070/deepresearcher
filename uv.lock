@@ -449,6 +449,7 @@ dependencies = [
     { name = "pytest-xdist" },
     { name = "ruff" },
     { name = "tavily-python" },
+    { name = "tenacity" },
 ]
 
 [package.metadata]
@@ -472,6 +473,7 @@ requires-dist = [
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "ruff", specifier = ">=0.9.5" },
     { name = "tavily-python", specifier = ">=0.5.1" },
+    { name = "tenacity", specifier = ">=9.0.0" },
 ]
 
 [[package]]

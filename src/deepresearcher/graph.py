@@ -545,6 +545,7 @@ def initiate_final_section_writing(state: ReportState) -> Command[Literal[END, "
 
 def compile_final_report(state: ReportState) -> dict:
     """Compile the final report"""
+    logger.info("Compiling the final report")
 
     # Get sections
     sections = state["sections"]

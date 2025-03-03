@@ -5,7 +5,7 @@ import os
 import pytest
 from dotenv import load_dotenv
 
-from deepresearcher.state import SearchQuery, Section, SectionState, SummaryState
+from deepresearcher.state import ReportState, SearchQuery, Section, SectionState, SummaryState
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -165,5 +165,37 @@ def section_state(topic: str) -> dict:
         source_str=source_str,
         report_sections_from_research=report_sections_from_research,
         completed_sections=[section_1, section_2],
+    )
+    return state
+
+
+@pytest.fixture
+def report_state(topic: str) -> dict:
+    """Provide a report state for unit testing."""
+    section_1 = Section(
+        name="Introduction",
+        description="Overview of the report",
+        research=False,
+        content="",
+    )
+    section_2 = Section(
+        name="Methodology",
+        description="Research methods used",
+        research=False,
+        content="",
+    )
+    section_3 = Section(
+        name="Conclusion",
+        description="Summary of the report",
+        research=False,
+        content="",
+    )
+    state = ReportState(
+        topic=topic,
+        feedback_on_report_plan="Looks good",
+        sections=[section_1, section_2, section_3],
+        completed_sections=[section_1, section_2, section_3],
+        report_sections_from_research="Research content",
+        final_report="Finalized report",
     )
     return state

@@ -47,7 +47,7 @@ def uml() -> None:
         "-o",
         "dot",
         "-A",
-        "-k",
+        #        "-k",
         "-d",
         "./uml",
         "./src/deepresearcher",

@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 
 from deepresearcher.graph import (
     finalize_summary,
+    gather_completed_sections,
     generate_queries,
     generate_query,
     generate_report_plan,
@@ -318,6 +319,17 @@ def test_write_section(section_state: SectionState, load_env: None) -> None:
         assert "search_queries" in result.update
         assert len(result.update["search_queries"]) > 0
         assert result.update["search_queries"][0].search_query is not None
+
+
+def test_gather_completed_sections(section_state: SectionState) -> None:
+    logger.info("Testing gather_completed_sections() method.")
+
+    result = gather_completed_sections(section_state)
+    logger.debug(f"Result of gather_completed_sections():\n{result}")
+
+    assert "report_sections_from_research" in result
+    assert result["report_sections_from_research"] is not None
+    assert "Requires Research:" in result["report_sections_from_research"]
 
 
 def test_graph_report_compiles() -> None:

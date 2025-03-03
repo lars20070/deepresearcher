@@ -119,12 +119,52 @@ def section_state(topic: str) -> dict:
         in astronomical observations and interpretations.**
         """,
     )
+    report_sections_from_research = """
+    ============================================================
+    Section 1: Core Concepts
+    ============================================================
+    Description:
+    Understanding the core concepts of syzygy
+    Requires Research: True
+    
+    Content:
+    
+    ## Understanding Core Concepts of Syzygy
+
+    **Syzygy represents a fundamental astronomical alignment phenomenon where three or more celestial bodies form a
+    precise straight-line configuration in space.** This alignment occurs most notably in the Earth-Sun-Moon system,
+    creating conditions necessary for solar and lunar eclipses.
+    
+    Key characteristics of syzygy include:
+    - Perfect or near-perfect linear alignment of celestial objects
+    - Gravitational force amplification along the alignment axis
+    - Temporary duration as objects continue their orbital paths
+    - Observable effects like eclipses and tidal variations
+    
+    ### Sources
+    - Syzygy - Definition & Detailed Explanation : https://sentinelmission.org/astronomical-objects-glossary/syzygy/
+
+    ============================================================
+    Section 2: Background Information
+    ============================================================
+    Description:
+    Exploring the historical context of syzygy
+    Requires Research: True
+
+    Content:
+    
+
+
+    **The historical significance of syzygy spans multiple cultures and historical periods, reflecting its importance
+    in astronomical observations and interpretations.**
+    """
+
     state = SectionState(
         section=section,
         search_iterations=1,
         search_queries=[query_1, query_2],
         source_str=source_str,
-        report_sections_from_research="",
+        report_sections_from_research=report_sections_from_research,
         completed_sections=[section_1, section_2],
     )
     return state

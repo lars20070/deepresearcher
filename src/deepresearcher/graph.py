@@ -490,6 +490,7 @@ def write_section(state: SectionState, config: RunnableConfig) -> Command[Litera
 
 def gather_completed_sections(state: ReportState) -> dict:
     """Gather completed sections from research and format them as context for writing the final sections"""
+    logger.info("Gathering completed sections from research")
 
     # List of completed sections
     completed_sections = state["completed_sections"]

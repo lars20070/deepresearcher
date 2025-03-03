@@ -20,7 +20,7 @@ The codebase is a copy of the [`ollama-deep-researcher`](https://github.com/lang
 
 ## UML diagrams
 
-For understanding the codebase, please start with the `graph` object in [`src/deepresearcher/graph.py`](src/deepresearcher/graph.py).
+For understanding the codebase, please start with the `graph` and `graph_report` objects in [`src/deepresearcher/graph.py`](src/deepresearcher/graph.py).
 
 ![package diagram](./uml/packages.png "Deep Researcher package structure")
 <br>*Deep Researcher package structure*

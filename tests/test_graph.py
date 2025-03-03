@@ -21,6 +21,7 @@ from deepresearcher.graph import (
     search_web,
     summarize_sources,
     web_research,
+    write_final_sections,
     write_section,
 )
 from deepresearcher.logger import logger
@@ -330,6 +331,17 @@ def test_gather_completed_sections(section_state: SectionState) -> None:
     assert "report_sections_from_research" in result
     assert result["report_sections_from_research"] is not None
     assert "Requires Research:" in result["report_sections_from_research"]
+
+
+@pytest.mark.paid
+def test_write_final_sections(section_state: SectionState, load_env: None) -> None:
+    logger.info("Testing write_final_sections() method.")
+
+    result = write_final_sections(section_state, config={"configurable": {}})
+    logger.debug(f"Result of write_final_sections():\n{result}")
+
+    assert "completed_sections" in result
+    assert len(result["completed_sections"]) > 0
 
 
 def test_graph_report_compiles() -> None:

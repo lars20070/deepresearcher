@@ -503,6 +503,7 @@ def gather_completed_sections(state: ReportState) -> dict:
 
 def write_final_sections(state: SectionState, config: RunnableConfig) -> dict:
     """Write final sections of the report, which do not require web search and use the completed sections as context"""
+    logger.info("Writing final sections of the report")
 
     # Get configuration
     configurable = ConfigurationReport.from_runnable_config(config)

@@ -158,7 +158,6 @@ def section_state(topic: str) -> dict:
     **The historical significance of syzygy spans multiple cultures and historical periods, reflecting its importance
     in astronomical observations and interpretations.**
     """
-
     state = SectionState(
         section=section,
         search_iterations=1,

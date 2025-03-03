@@ -488,6 +488,18 @@ def write_section(state: SectionState, config: RunnableConfig) -> Command[Litera
         return Command(update={"search_queries": feedback.follow_up_queries, "section": section}, goto="search_web")
 
 
+def gather_completed_sections(state: ReportState) -> dict:
+    """Gather completed sections from research and format them as context for writing the final sections"""
+
+    # List of completed sections
+    completed_sections = state["completed_sections"]
+
+    # Format completed section to str to use as context for final sections
+    completed_report_sections = format_sections(completed_sections)
+
+    return {"report_sections_from_research": completed_report_sections}
+
+
 def write_final_sections(state: SectionState, config: RunnableConfig) -> dict:
     """Write final sections of the report, which do not require web search and use the completed sections as context"""
 
@@ -516,18 +528,6 @@ def write_final_sections(state: SectionState, config: RunnableConfig) -> dict:
 
     # Write the updated section to completed sections
     return {"completed_sections": [section]}
-
-
-def gather_completed_sections(state: ReportState) -> dict:
-    """Gather completed sections from research and format them as context for writing the final sections"""
-
-    # List of completed sections
-    completed_sections = state["completed_sections"]
-
-    # Format completed section to str to use as context for final sections
-    completed_report_sections = format_sections(completed_sections)
-
-    return {"report_sections_from_research": completed_report_sections}
 
 
 def initiate_final_section_writing(state: ReportState) -> Command[Literal[END, "write_final_sections"]]:

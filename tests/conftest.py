@@ -87,12 +87,44 @@ def section_state(topic: str) -> dict:
     Syzygy - Definition & Detailed Explanation - Astronomical Objects Glossary - Sentinel Mission
     Skip to content
     """
+    section_1 = Section(
+        name="Core Concepts",
+        description=f"Understanding the core concepts of {topic}",
+        research=True,
+        content="""
+        ## Understanding Core Concepts of Syzygy
+
+        **Syzygy represents a fundamental astronomical alignment phenomenon where three or more celestial bodies form a
+        precise straight-line configuration in space.** This alignment occurs most notably in the Earth-Sun-Moon system,
+        creating conditions necessary for solar and lunar eclipses.
+        
+        Key characteristics of syzygy include:
+        - Perfect or near-perfect linear alignment of celestial objects
+        - Gravitational force amplification along the alignment axis
+        - Temporary duration as objects continue their orbital paths
+        - Observable effects like eclipses and tidal variations
+        
+        ### Sources
+        # - Syzygy - Definition & Detailed Explanation : https://sentinelmission.org/astronomical-objects-glossary/syzygy/
+        """,
+    )
+    section_2 = Section(
+        name="Background Information",
+        description=f"Exploring the historical context of {topic}",
+        research=True,
+        content="""
+        ## Understanding the Historical Context of Syzygy
+
+        **The historical significance of syzygy spans multiple cultures and historical periods, reflecting its importance
+        in astronomical observations and interpretations.**
+        """,
+    )
     state = SectionState(
         section=section,
         search_iterations=1,
         search_queries=[query_1, query_2],
         source_str=source_str,
         report_sections_from_research="",
-        completed_sections=[],
+        completed_sections=[section_1, section_2],
     )
     return state

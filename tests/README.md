@@ -4,6 +4,6 @@ By default all tests with paid API calls are disabled. Please comment out the fo
 ```toml
 addopts = "-m 'not paid'"
 ```
-If you do, please ensure the [repository secrets](../.github/workflows/build.yaml#27) include all necessary API keys.
+If you do, please ensure the [repository secrets](../.github/workflows/build.yml#27) include all necessary API keys.
 
 `test_EXAMPLE_*` are simple examples for understanding the LangChain / LangGraph codebase. They do not test functionality in the `deepresearcher` package.

@@ -20,6 +20,7 @@ from deepresearcher.graph import (
     search_web,
     summarize_sources,
     web_research,
+    write_section,
 )
 from deepresearcher.logger import logger
 from deepresearcher.state import ReportState, Section, SectionState, SummaryState
@@ -288,11 +289,35 @@ async def test_search_web(section_state: SectionState, load_env: None) -> None:
     logger.info("Testing search_web() method.")
 
     result = await search_web(section_state, config={"configurable": {}})
+    logger.debug(f"Result of search_web():\n{result}")
 
     assert "source_str" in result
     assert result["source_str"] is not None
     assert "search_iterations" in result
     assert result["search_iterations"] > 0
+
+
+@pytest.mark.paid
+def test_write_section(section_state: SectionState, load_env: None) -> None:
+    logger.info("Testing write_section() method.")
+
+    result = write_section(section_state, config={"configurable": {}})
+    logger.debug(f"Result of write_section():\n{result}")
+
+    # We either go to the next step or repeat the search.
+    assert result.goto in ["__end__", "search_web"]
+    if result.goto == "__end__":
+        # Validate pass flow
+        assert "completed_sections" in result.update
+        assert len(result.update["completed_sections"]) == 1
+        assert result.update["completed_sections"][0].name is not None
+        assert result.update["completed_sections"][0].description is not None
+        assert result.update["completed_sections"][0].content is not None
+    elif result.goto == "search_web":
+        # Validate fail flow
+        assert "search_queries" in result.update
+        assert len(result.update["search_queries"]) > 0
+        assert result.update["search_queries"][0].search_query is not None
 
 
 def test_graph_report_compiles() -> None:

@@ -445,6 +445,7 @@ async def search_web(state: SectionState, config: RunnableConfig) -> dict:
 
 def write_section(state: SectionState, config: RunnableConfig) -> Command[Literal[END, "search_web"]]:
     """Write a section of the report"""
+    logger.info(f"Writing the section: {state['section'].name}")
 
     # Get state
     section = state["section"]

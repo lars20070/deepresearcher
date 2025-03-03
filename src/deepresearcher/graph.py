@@ -50,6 +50,20 @@ from deepresearcher.utils import (
     tavily_search_async,
 )
 
+
+def retry_with_backoff(func: callable) -> callable:
+    """
+    Retry decorator with exponential backoff.
+
+    For example, the first retry will wait 20 seconds, the second 40 seconds, the third 80 seconds, and so on. Stopping after 5 attempts.
+    """
+    retry_min = 20
+    retry_max = 1000
+    retry_attempts = 5
+
+    return retry(wait=wait_exponential(min=retry_min, max=retry_max), stop=stop_after_attempt(retry_attempts))(func)
+
+
 #########################################################################
 #
 # Define the graph for the simple deep researcher assistant (no HITL)
@@ -260,7 +274,7 @@ graph = builder.compile()
 
 
 # Define nodes
-@retry(wait=wait_exponential(min=1, max=60), stop=stop_after_attempt(5))
+@retry_with_backoff
 async def generate_report_plan(state: ReportState, config: RunnableConfig) -> dict:
     logger.info(f"Generating the report plan for the topic: {state['topic']}")
 
@@ -390,6 +404,7 @@ def human_feedback(state: ReportState, config: RunnableConfig) -> Command[Litera
         raise TypeError(f"Interrupt value of type {type(feedback)} is not supported.")
 
 
+@retry_with_backoff
 def generate_queries(state: SectionState, config: RunnableConfig) -> dict:
     """Generate search queries for a report section"""
     logger.info(f"Generating search queries for the section: {state['section'].name}")
@@ -418,6 +433,7 @@ def generate_queries(state: SectionState, config: RunnableConfig) -> dict:
     return {"search_queries": queries.queries}
 
 
+@retry_with_backoff
 async def search_web(state: SectionState, config: RunnableConfig) -> dict:
     """Search the web for each query, then return a list of raw sources and a formatted string of sources."""
     logger.info("Searching the web for each query")
@@ -448,6 +464,7 @@ async def search_web(state: SectionState, config: RunnableConfig) -> dict:
     return {"source_str": source_str, "search_iterations": state["search_iterations"] + 1}
 
 
+@retry_with_backoff
 def write_section(state: SectionState, config: RunnableConfig) -> Command[Literal[END, "search_web"]]:
     """Write a section of the report"""
     logger.info(f"Writing the section: {state['section'].name}")
@@ -506,6 +523,7 @@ def gather_completed_sections(state: ReportState) -> dict:
     return {"report_sections_from_research": completed_report_sections}
 
 
+@retry_with_backoff
 def write_final_sections(state: SectionState, config: RunnableConfig) -> dict:
     """Write final sections of the report, which do not require web search and use the completed sections as context"""
     logger.info("Writing final sections of the report")

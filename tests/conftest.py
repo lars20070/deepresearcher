@@ -68,11 +68,30 @@ def section_state(topic: str) -> dict:
     )
     query_1 = SearchQuery(search_query="syzygy astronomy definition celestial alignment planets")
     query_2 = SearchQuery(search_query="syzygy astronomical phenomena effects tides orbital mechanics")
+    source_str = """
+    Sources:
+    
+    Source Syzygy - Definition & Detailed Explanation - Sentinel Mission:
+    ===
+    URL: https://sentinelmission.org/astronomical-objects-glossary/syzygy/
+    ===
+    Most relevant content from source: Syzygy - Definition & Detailed Explanation - Astronomical Objects Glossary -
+    Sentinel Mission Syzygy – Definition & Detailed Explanation – Astronomical Objects Glossary Syzygy is a term used
+    in astronomy to describe the alignment of three or more celestial bodies in a straight line. This phenomenon occurs
+    when the Earth, Sun, and Moon are in a straight line, creating either a solar or lunar eclipse. Syzygy occurs when
+    the gravitational forces between celestial bodies cause them to align in a straight line. Syzygy can have various
+    effects on Earth, depending on the type of alignment that occurs. In addition to observing syzygy from Earth,
+    astronomers also study the phenomenon from space using satellites and spacecraft.
+    ===
+    Full source content limited to 1000 tokens: Published Time: 2024-04-28T09:26:25+00:00
+    Syzygy - Definition & Detailed Explanation - Astronomical Objects Glossary - Sentinel Mission
+    Skip to content
+    """
     state = SectionState(
         section=section,
-        search_iterations=0,
+        search_iterations=1,
         search_queries=[query_1, query_2],
-        source_str="",
+        source_str=source_str,
         report_sections_from_research="",
         completed_sections=[],
     )

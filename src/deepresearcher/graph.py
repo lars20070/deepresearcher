@@ -367,8 +367,11 @@ def human_feedback(state: ReportState, config: RunnableConfig) -> Command[Litera
 
     # Get feedback on the report plan from interrupt
     feedback = interrupt(
-        f"Please provide feedback on the following report plan. \n\n{sections_str}\n\n Does the report plan meet your needs?\
-            Pass 'true' to approve the report plan or provide feedback to regenerate the report plan:"
+        f"""Please provide feedback on the following report plan.
+        
+        {sections_str}
+        
+        Does the report plan meet your needs? Pass 'true' to approve the report plan or provide feedback to regenerate the report plan:"""
     )
 
     # If the user approves the report plan, kick off section writing

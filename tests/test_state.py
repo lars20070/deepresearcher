@@ -97,18 +97,18 @@ def test_report_state_output() -> None:
 
 def test_report_state() -> None:
     logger.info("Testing ReportState.")
-    state: ReportState = {
-        "topic": "Test topic",
-        "feedback_on_report_plan": "Looks good",
-        "sections": [Section(name="Sec1", description="Desc", research=True, content="Content")],
-        "completed_sections": [],
-        "report_sections_from_research": "Research content",
-        "final_report": "Finalized report",
-    }
-    assert state["topic"] == "Test topic"
-    assert state["feedback_on_report_plan"] == "Looks good"
-    assert len(state["sections"]) == 1
-    assert state["final_report"] == "Finalized report"
+    state = ReportState(
+        topic="Test topic",
+        feedback_on_report_plan="Looks good",
+        sections=[Section(name="Sec1", description="Desc", research=True, content="Content")],
+        completed_sections=[],
+        report_sections_from_research="Research content",
+        final_report="Finalized report",
+    )
+    assert state.topic == "Test topic"
+    assert state.feedback_on_report_plan == "Looks good"
+    assert len(state.sections) == 1
+    assert state.final_report == "Finalized report"
 
 
 def test_section_state() -> None:

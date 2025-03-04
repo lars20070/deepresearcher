@@ -47,12 +47,10 @@ jobs:
     - name: Install Pandoc for pdf reports
       uses: r-lib/actions/setup-pandoc@v2
     - name: Install TeXLive for pdf reports
-      uses: xu-cheng/texlive-action@v2
+      uses: teatimeguest/setup-texlive-action@v3
       with:
-        scheme: small
-        run: |
-          apk add make
-          make
+        packages: |
+          xetex
     - name: Install uv package manager
       uses: astral-sh/setup-uv@v5.2.2
       with:

@@ -80,7 +80,7 @@ class ReportStateOutput(BaseModel):
     final_report: str = Field(None, description="Finalized report")
 
 
-# TODO: Convert all TypeDicts to Pydantic models.
+# TODO: Convert TypeDict to Pydantic model
 class ReportState(TypedDict):
     topic: str  # Report topic
     feedback_on_report_plan: str  # Feedback on the report plan
@@ -90,13 +90,13 @@ class ReportState(TypedDict):
     final_report: str  # Final report
 
 
-class SectionState(TypedDict):
-    section: Section  # Report section
-    search_iterations: int  # Number of search iterations done
-    search_queries: list[SearchQuery]  # List of search queries
-    source_str: str  # String of formatted source content from web search
-    report_sections_from_research: str  # String of any completed sections from research to write final sections
-    completed_sections: list[Section]  # Final key we duplicate in outer state for Send() API
+class SectionState(BaseModel):
+    section: Section = Field(None, description="Report section")
+    search_iterations: int = Field(None, description="Number of search iterations done")
+    search_queries: list[SearchQuery] = Field(default_factory=list, description="List of search queries")
+    source_str: str = Field(None, description="String of formatted source content from web search")
+    report_sections_from_research: str = Field(None, description="String of any completed sections from research to write final sections")
+    completed_sections: list[Section] = Field(default_factory=list, description="Final key we duplicate in outer state for Send() API")
 
 
 class SectionOutputState(BaseModel):

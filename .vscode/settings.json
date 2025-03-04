@@ -58,6 +58,8 @@
     "groq",
     "pydantic",
     "asyncio",
+    "xetex",
+    "xelatex",
   ],
   "cSpell.languageSettings": [
     {

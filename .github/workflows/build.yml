@@ -44,6 +44,15 @@ jobs:
         grep -q "OPENAI_API_KEY=" .env && echo "✓ OPENAI_API_KEY is set" || echo "✗ OPENAI_API_KEY is missing"
         grep -q "ANTHROPIC_API_KEY=" .env && echo "✓ ANTHROPIC_API_KEY is set" || echo "✗ ANTHROPIC_API_KEY is missing"
         grep -q "GROQ_API_KEY=" .env && echo "✓ GROQ_API_KEY is set" || echo "✗ GROQ_API_KEY is missing"
+    - name: Install Pandoc for pdf reports
+      uses: r-lib/actions/setup-pandoc@v2
+    - name: Install TeXLive for pdf reports
+      uses: xu-cheng/texlive-action@v2
+      with:
+        scheme: small
+        run: |
+          apk add make
+          make
     - name: Install uv package manager
       uses: astral-sh/setup-uv@v5.2.2
       with:

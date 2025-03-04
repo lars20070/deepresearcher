@@ -602,7 +602,24 @@ def compile_final_report(state: ReportState, config: RunnableConfig) -> dict:
             logger.info(f"Writing the final report as PDF to '{configurable.output_dir}'")
             logger.debug(f"Pandoc version {pandoc_version} is installed at path: '{pandoc_path}'")
             path_pdf = os.path.join(configurable.output_dir, f"{file_name}.pdf")
-            pypandoc.convert_file(path_md, "pdf", outputfile=path_pdf)
+            pypandoc.convert_file(
+                path_md,
+                "pdf",
+                outputfile=path_pdf,
+                extra_args=[
+                    "--pdf-engine=xelatex",
+                    "-V",
+                    "colorlinks=true",
+                    "-V",
+                    "linkcolor=blue",  # Internal links
+                    "-V",
+                    "urlcolor=blue",  # External links
+                    "-V",
+                    "citecolor=blue",
+                    "--from",
+                    "markdown+autolink_bare_uris",  # Ensures bare URLs are also hyperlinked
+                ],
+            )
         else:
             logger.error("Pandoc is not installed. Skipping conversion to PDF.")
     else:

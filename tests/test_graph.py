@@ -348,7 +348,7 @@ def test_write_final_sections(section_state: SectionState, load_env: None) -> No
 def test_compile_final_report(report_state: SectionState) -> None:
     logger.info("Testing compile_final_report() method.")
 
-    result = compile_final_report(report_state)
+    result = compile_final_report(report_state, config={"configurable": {}})
     logger.debug(f"Result of compile_final_report():\n{result}")
 
     assert "final_report" in result

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import json
+import os
 from typing import Literal
 
 from langchain.chat_models import init_chat_model
@@ -566,9 +567,12 @@ def initiate_final_section_writing(state: ReportState) -> Command[Literal[END, "
     ]
 
 
-def compile_final_report(state: ReportState) -> dict:
+def compile_final_report(state: ReportState, config: RunnableConfig) -> dict:
     """Compile the final report"""
     logger.info("Compiling the final report")
+
+    # Get configuration
+    configurable = ConfigurationReport.from_runnable_config(config)
 
     # Get sections
     sections = state["sections"]
@@ -580,6 +584,15 @@ def compile_final_report(state: ReportState) -> dict:
 
     # Compile final report
     all_sections = "\n\n".join([s.content for s in sections])
+
+    # Write the final report to output directory
+    if os.path.exists(configurable.output_dir):
+        logger.info(f"Writing the final report to {configurable.output_dir}")
+        output_path = os.path.join(configurable.output_dir, "report.md")
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(all_sections)
+    else:
+        logger.error(f"Output directory {configurable.output_dir} does not exist. Skipping writing the final report.")
 
     return {"final_report": all_sections}
 

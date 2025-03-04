@@ -86,6 +86,7 @@ class Configuration(BaseModel, ConfigurationMixin):
 class ConfigurationReport(BaseModel, ConfigurationMixin):
     """The configurable fields for the chatbot."""
 
+    output_dir: str = Field(os.environ.get("OUTPUT_DIR", "reports/"))  # Output directory for the final report
     report_structure: str = Field(os.environ.get("REPORT_STRUCTURE", DEFAULT_REPORT_STRUCTURE))  # Defaults to the default report structure
     number_of_queries: int = Field(int(os.environ.get("NUMBER_OF_QUERIES", 2)))  # Number of search queries to generate per iteration
     max_search_depth: int = Field(int(os.environ.get("MAX_SEARCH_DEPTH", 2)))  # Maximum number of reflection + search iterations

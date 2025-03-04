@@ -37,6 +37,7 @@ def test_configuration_report_defaults() -> None:
     """All configuration values should have default values."""
     config = ConfigurationReport()
 
+    assert config.output_dir == "reports/"
     assert config.report_structure == DEFAULT_REPORT_STRUCTURE
     assert config.number_of_queries == 2
     assert config.max_search_depth == 2

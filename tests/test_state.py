@@ -130,6 +130,6 @@ def test_section_state() -> None:
 
 def test_section_output_state() -> None:
     logger.info("Testing SectionOutputState.")
-    state: SectionOutputState = {"completed_sections": [Section(name="Intro", description="Desc", research=True, content="Content")]}
-    assert len(state["completed_sections"]) == 1
-    assert state["completed_sections"][0].name == "Intro"
+    state = SectionOutputState(completed_sections=[Section(name="Intro", description="Desc", research=True, content="Content")])
+    assert len(state.completed_sections) == 1
+    assert state.completed_sections[0].name == "Intro"

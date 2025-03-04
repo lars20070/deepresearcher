@@ -99,5 +99,5 @@ class SectionState(TypedDict):
     completed_sections: list[Section]  # Final key we duplicate in outer state for Send() API
 
 
-class SectionOutputState(TypedDict):
-    completed_sections: list[Section]  # Final key we duplicate in outer state for Send() API
+class SectionOutputState(BaseModel):
+    completed_sections: list[Section] = Field(default_factory=list, description="Final key we duplicate in outer state for Send() API")

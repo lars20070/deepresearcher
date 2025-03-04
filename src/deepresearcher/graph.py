@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 from typing import Literal
 
 from langchain.chat_models import init_chat_model
@@ -588,7 +589,8 @@ def compile_final_report(state: ReportState, config: RunnableConfig) -> dict:
     # Write the final report to output directory
     if os.path.exists(configurable.output_dir):
         logger.info(f"Writing the final report to {configurable.output_dir}")
-        output_path = os.path.join(configurable.output_dir, "report.md")
+        file_name = re.sub(r"[^a-zA-Z0-9]", "_", state["topic"]).lower()
+        output_path = os.path.join(configurable.output_dir, f"{file_name}.md")
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(all_sections)
     else:

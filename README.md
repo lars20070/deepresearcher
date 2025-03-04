@@ -1,4 +1,4 @@
-# deep researcher
+# Deep Researcher
 
 Fully local web research and report writing assistant.
 
@@ -13,10 +13,26 @@ The codebase is a copy of the [`ollama-deep-researcher`](https://github.com/lang
     ```bash
     uv run startserver
     ```
-3. Open [LangGraph Studio](https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024) in Chrome browser.
+3. Open [LangGraph Studio](https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024) in a Chrome browser.
     ```bash
     open -a "Google Chrome" 'https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024'
     ```
+
+## Requirements
+
+1. ### Ollama
+
+   [Install Ollama](https://ollama.com/download) and the Llama 3.3 model.
+   ```bash
+   ollama pull llama3.3
+   ```
+   By default, `deepresearcher` is working with local Ollama models. If you want to use hosted models instead, please specify the relevant API keys in the `.env` file.
+2. ### Pandoc
+
+   By default, research reports are generated in markdown format. If Pandoc is installed on the system, the reports will automatically be converted to PDF.
+   ```bash
+   brew install pandoc
+   ```
 
 ## UML diagrams
 

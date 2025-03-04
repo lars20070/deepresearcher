@@ -45,11 +45,38 @@ def uml() -> None:
         "run",
         "pyreverse",
         "-o",
-        "png",
+        "dot",
         "-A",
-        "-k",
+        #        "-k",
         "-d",
         "./uml",
         "./src/deepresearcher",
     ]
-    sys.exit(subprocess.call(cmd))
+    result = subprocess.call(cmd)
+    if result != 0:
+        logger.error("Failed to generate UML diagrams with pyreverse.")
+        sys.exit(result)
+    cmd = [
+        "dot",
+        "-Tpng",
+        "-Grankdir=LR",
+        "-o",
+        "./uml/classes.png",
+        "./uml/classes.dot",
+    ]
+    result = subprocess.call(cmd)
+    if result != 0:
+        logger.error("Failed to generate UML diagram for classes with Graphviz.")
+        sys.exit(result)
+    cmd = [
+        "dot",
+        "-Tpng",
+        "-Grankdir=LR",
+        "-o",
+        "./uml/packages.png",
+        "./uml/packages.dot",
+    ]
+    result = subprocess.call(cmd)
+    if result != 0:
+        logger.error("Failed to generate UML diagram for packages with Graphviz.")
+    sys.exit(result)

@@ -279,11 +279,11 @@ graph = builder.compile()
 # Define nodes
 @retry_with_backoff
 async def generate_report_plan(state: ReportState, config: RunnableConfig) -> dict:
-    logger.info(f"Generating the report plan for the topic: {state['topic']}")
+    logger.info(f"Generating the report plan for the topic: {state.topic}")
 
     # Inputs
-    topic = state["topic"]
-    feedback = state.get("feedback_on_report_plan", None)
+    topic = state.topic
+    feedback = state.feedback_on_report_plan
 
     # Get configuration
     configurable = ConfigurationReport.from_runnable_config(config)
@@ -378,7 +378,7 @@ def human_feedback(state: ReportState, config: RunnableConfig) -> Command[Litera
     logger.info("Getting human feedback on the report plan")
 
     # Get sections
-    sections = state["sections"]
+    sections = state.sections
     sections_str = "\n\n".join(
         f"Section: {section.name}\nDescription: {section.description}\nResearch needed: {'Yes' if section.research else 'No'}\n"
         for section in sections
@@ -577,8 +577,8 @@ def compile_final_report(state: ReportState, config: RunnableConfig) -> dict:
     configurable = ConfigurationReport.from_runnable_config(config)
 
     # Get sections
-    sections = state["sections"]
-    completed_sections = {s.name: s.content for s in state["completed_sections"]}
+    sections = state.sections
+    completed_sections = {s.name: s.content for s in state.completed_sections}
 
     # Update sections with completed content while maintaining original order
     for section in sections:
@@ -590,7 +590,7 @@ def compile_final_report(state: ReportState, config: RunnableConfig) -> dict:
     # Export the final report to output directory
     if os.path.exists(configurable.output_dir):
         logger.info(f"Writing the final report as markdown to '{configurable.output_dir}'")
-        file_name = re.sub(r"[^a-zA-Z0-9]", "_", state["topic"]).lower()
+        file_name = re.sub(r"[^a-zA-Z0-9]", "_", state.topic).lower()
         path_md = os.path.join(configurable.output_dir, f"{file_name}.md")
         with open(path_md, "w", encoding="utf-8") as f:
             f.write(all_sections)

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
-import operator
-from typing import Annotated, Literal, TypedDict
+from typing import Literal, TypedDict
 
 from pydantic import BaseModel, Field
 
@@ -80,16 +79,16 @@ class ReportStateOutput(BaseModel):
     final_report: str = Field(None, description="Finalized report")
 
 
+class ReportState(BaseModel):
+    topic: str = Field(None, description="Report topic")
+    feedback_on_report_plan: str = Field(None, description="Feedback on the report plan")
+    sections: list[Section] = Field(default_factory=list, description="List of report sections")
+    completed_sections: list[Section] = Field(default_factory=list, description="Completed sections of the report")
+    report_sections_from_research: str = Field(None, description="String of any completed sections from research to write final sections")
+    final_report: str = Field(None, description="Final report")
+
+
 # TODO: Convert all TypeDicts to Pydantic models.
-class ReportState(TypedDict):
-    topic: str  # Report topic
-    feedback_on_report_plan: str  # Feedback on the report plan
-    sections: list[Section]  # List of report sections
-    completed_sections: Annotated[list, operator.add]  # Send() API key
-    report_sections_from_research: str  # String of any completed sections from research to write final sections
-    final_report: str  # Final report
-
-
 class SectionState(TypedDict):
     section: Section  # Report section
     search_iterations: int  # Number of search iterations done

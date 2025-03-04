@@ -113,23 +113,37 @@ def test_report_state() -> None:
 
 def test_section_state() -> None:
     logger.info("Testing SectionState.")
-    section = Section(name="Conclusion", description="Summary", research=False, content="End content")
-    state: SectionState = {
-        "section": section,
-        "search_iterations": 2,
-        "search_queries": [SearchQuery(search_query="q1")],
-        "source_str": "Formatted sources",
-        "report_sections_from_research": "Research sections",
-        "completed_sections": [section],
-    }
-    assert state["section"].name == "Conclusion"
-    assert state["search_iterations"] == 2
-    assert state["source_str"] == "Formatted sources"
-    assert len(state["completed_sections"]) == 1
+    section = Section(
+        name="Conclusion",
+        description="Summary",
+        research=False,
+        content="End content",
+    )
+    state = SectionState(
+        section=section,
+        search_iterations=2,
+        search_queries=[SearchQuery(search_query="q1")],
+        source_str="Formatted sources",
+        report_sections_from_research="Research sections",
+        completed_sections=[section],
+    )
+    assert state.section.name == "Conclusion"
+    assert state.search_iterations == 2
+    assert state.source_str == "Formatted sources"
+    assert len(state.completed_sections) == 1
 
 
 def test_section_output_state() -> None:
     logger.info("Testing SectionOutputState.")
-    state: SectionOutputState = {"completed_sections": [Section(name="Intro", description="Desc", research=True, content="Content")]}
-    assert len(state["completed_sections"]) == 1
-    assert state["completed_sections"][0].name == "Intro"
+    state = SectionOutputState(
+        completed_sections=[
+            Section(
+                name="Intro",
+                description="Desc",
+                research=True,
+                content="Content",
+            )
+        ],
+    )
+    assert len(state.completed_sections) == 1
+    assert state.completed_sections[0].name == "Intro"

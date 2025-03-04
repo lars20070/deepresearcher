@@ -410,10 +410,10 @@ def human_feedback(state: ReportState, config: RunnableConfig) -> Command[Litera
 @retry_with_backoff
 def generate_queries(state: SectionState, config: RunnableConfig) -> dict:
     """Generate search queries for a report section"""
-    logger.info(f"Generating search queries for the section: {state['section'].name}")
+    logger.info(f"Generating search queries for the section: {state.section.name}")
 
-    # Get state
-    section = state["section"]
+    # Get section
+    section = state.section
 
     # Get configuration
     configurable = ConfigurationReport.from_runnable_config(config)
@@ -442,7 +442,7 @@ async def search_web(state: SectionState, config: RunnableConfig) -> dict:
     logger.info("Searching the web for each query")
 
     # Get state
-    search_queries = state["search_queries"]
+    search_queries = state.search_queries
 
     # Get configuration
     configurable = ConfigurationReport.from_runnable_config(config)
@@ -464,17 +464,17 @@ async def search_web(state: SectionState, config: RunnableConfig) -> dict:
     else:
         raise ValueError(f"Unsupported search API: {configurable.search_api}")
 
-    return {"source_str": source_str, "search_iterations": state["search_iterations"] + 1}
+    return {"source_str": source_str, "search_iterations": state.search_iterations + 1}
 
 
 @retry_with_backoff
 def write_section(state: SectionState, config: RunnableConfig) -> Command[Literal[END, "search_web"]]:
     """Write a section of the report"""
-    logger.info(f"Writing the section: {state['section'].name}")
+    logger.info(f"Writing the section: {state.section.name}")
 
     # Get state
-    section = state["section"]
-    source_str = state["source_str"]
+    section = state.section
+    source_str = state.source_str
 
     # Get configuration
     configurable = ConfigurationReport.from_runnable_config(config)
@@ -505,7 +505,7 @@ def write_section(state: SectionState, config: RunnableConfig) -> Command[Litera
         + [HumanMessage(content="Grade the report and consider follow-up questions for missing information:")]
     )
 
-    if feedback.grade == "pass" or state["search_iterations"] >= configurable.max_search_depth:
+    if feedback.grade == "pass" or state.search_iterations >= configurable.max_search_depth:
         # Publish the section to completed sections
         return Command(update={"completed_sections": [section]}, goto=END)
     else:
@@ -518,7 +518,7 @@ def gather_completed_sections(state: ReportState) -> dict:
     logger.info("Gathering completed sections from research")
 
     # List of completed sections
-    completed_sections = state["completed_sections"]
+    completed_sections = state.completed_sections
 
     # Format completed section to str to use as context for final sections
     completed_report_sections = format_sections(completed_sections)
@@ -535,8 +535,8 @@ def write_final_sections(state: SectionState, config: RunnableConfig) -> dict:
     configurable = ConfigurationReport.from_runnable_config(config)
 
     # Get state
-    section = state["section"]
-    completed_report_sections = state["report_sections_from_research"]
+    section = state.section
+    completed_report_sections = state.report_sections_from_research
 
     # Format system instructions
     system_instructions = final_section_writer_instructions.format(
@@ -563,8 +563,8 @@ def initiate_final_section_writing(state: ReportState) -> Command[Literal[END, "
 
     # Kick off section writing in parallel via Send() API for any sections that do not require research
     return [
-        Send("write_final_sections", {"section": s, "report_sections_from_research": state["report_sections_from_research"]})
-        for s in state["sections"]
+        Send("write_final_sections", {"section": s, "report_sections_from_research": state.report_sections_from_research})
+        for s in state.sections
         if not s.research
     ]
 

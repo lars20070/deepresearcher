@@ -3,6 +3,7 @@
 import json
 import os
 import re
+import pypandoc
 from typing import Literal
 
 from langchain.chat_models import init_chat_model
@@ -586,13 +587,24 @@ def compile_final_report(state: ReportState, config: RunnableConfig) -> dict:
     # Compile final report
     all_sections = "\n\n".join([s.content for s in sections])
 
-    # Write the final report to output directory
+    # Export the final report to output directory
     if os.path.exists(configurable.output_dir):
-        logger.info(f"Writing the final report to {configurable.output_dir}")
+        logger.info(f"Writing the final report as markdown to '{configurable.output_dir}'")
         file_name = re.sub(r"[^a-zA-Z0-9]", "_", state["topic"]).lower()
-        output_path = os.path.join(configurable.output_dir, f"{file_name}.md")
-        with open(output_path, "w", encoding="utf-8") as f:
+        path_md = os.path.join(configurable.output_dir, f"{file_name}.md")
+        with open(path_md, "w", encoding="utf-8") as f:
             f.write(all_sections)
+
+        # Convert markdown to PDF using Pandoc
+        pandoc_path = pypandoc.get_pandoc_path()
+        pandoc_version = pypandoc.get_pandoc_version()
+        if pandoc_path:
+            logger.info(f"Writing the final report as PDF to '{configurable.output_dir}'")
+            logger.debug(f"Pandoc version {pandoc_version} is installed at path: '{pandoc_path}'")
+            path_pdf = os.path.join(configurable.output_dir, f"{file_name}.pdf")
+            pypandoc.convert_file(path_md, "pdf", outputfile=path_pdf)
+        else:
+            logger.error("Pandoc is not installed. Skipping conversion to PDF.")
     else:
         logger.error(f"Output directory {configurable.output_dir} does not exist. Skipping writing the final report.")
 

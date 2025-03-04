@@ -596,11 +596,9 @@ def compile_final_report(state: ReportState, config: RunnableConfig) -> dict:
             f.write(all_sections)
 
         # Convert markdown to PDF using Pandoc
-        pandoc_path = pypandoc.get_pandoc_path()
-        pandoc_version = pypandoc.get_pandoc_version()
-        if pandoc_path:
+        try:
             logger.info(f"Writing the final report as PDF to '{configurable.output_dir}'")
-            logger.debug(f"Pandoc version {pandoc_version} is installed at path: '{pandoc_path}'")
+            logger.debug(f"Pandoc version {pypandoc.get_pandoc_version()} is installed at path: '{pypandoc.get_pandoc_path()}'")
             path_pdf = os.path.join(configurable.output_dir, f"{file_name}.pdf")
             pypandoc.convert_file(
                 path_md,
@@ -620,7 +618,7 @@ def compile_final_report(state: ReportState, config: RunnableConfig) -> dict:
                     "markdown+autolink_bare_uris",  # Ensures bare URLs are also hyperlinked
                 ],
             )
-        else:
+        except Exception:
             logger.error("Pandoc is not installed. Skipping conversion to PDF.")
     else:
         logger.error(f"Output directory {configurable.output_dir} does not exist. Skipping writing the final report.")

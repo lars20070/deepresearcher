@@ -72,15 +72,15 @@ class Feedback(BaseModel):
     )
 
 
-# TODO: Convert TypeDicts to Pydantic models.
-class ReportStateInput(TypedDict):
-    topic: str  # Report topic
+class ReportStateInput(BaseModel):
+    topic: str = Field(None, description="Report topic")
 
 
-class ReportStateOutput(TypedDict):
-    final_report: str  # Final report
+class ReportStateOutput(BaseModel):
+    final_report: str = Field(None, description="Finalized report")
 
 
+# TODO: Convert all TypeDicts to Pydantic models.
 class ReportState(TypedDict):
     topic: str  # Report topic
     feedback_on_report_plan: str  # Feedback on the report plan

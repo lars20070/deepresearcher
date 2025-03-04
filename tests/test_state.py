@@ -85,14 +85,14 @@ def test_feedback() -> None:
 
 def test_report_state_input() -> None:
     logger.info("Testing ReportStateInput.")
-    report_input: ReportStateInput = {"topic": "Test topic"}
-    assert report_input["topic"] == "Test topic"
+    report_input = ReportStateInput(topic="Test topic")
+    assert report_input.topic == "Test topic"
 
 
 def test_report_state_output() -> None:
     logger.info("Testing ReportStateOutput.")
-    report_output: ReportStateOutput = {"final_report": "Final report content"}
-    assert report_output["final_report"] == "Final report content"
+    report_output = ReportStateOutput(final_report="Final report content")
+    assert report_output.final_report == "Final report content"
 
 
 def test_report_state() -> None:

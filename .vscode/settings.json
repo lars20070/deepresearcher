@@ -60,6 +60,8 @@
     "asyncio",
     "xetex",
     "xelatex",
+    "pypandoc",
+    "isinstance",
   ],
   "cSpell.languageSettings": [
     {
@@ -84,5 +86,6 @@
       "title": "deepresearcher",
       "pattern": "deepresearcher.log"
     },
-  ]
+  ],
+  "codeQL.createQuery.qlPackLocation": "${workspaceFolder}"
 }

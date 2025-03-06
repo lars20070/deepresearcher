@@ -279,11 +279,11 @@ graph = builder.compile()
 # Define nodes
 @retry_with_backoff
 async def generate_report_plan(state: ReportState | dict, config: RunnableConfig) -> dict:
-    logger.info(f"Generating the report plan for the topic: {state.topic}")
-
     # Cast to pydantic object if necessary
     if isinstance(state, dict):
         state = ReportState(**state)
+
+    logger.info(f"Generating the report plan for the topic: {state.topic}")
 
     # Inputs
     topic = state.topic
@@ -379,11 +379,11 @@ async def generate_report_plan(state: ReportState | dict, config: RunnableConfig
 
 
 def human_feedback(state: ReportState | dict, config: RunnableConfig) -> Command[Literal["generate_report_plan", "build_section_with_web_research"]]:
-    logger.info("Getting human feedback on the report plan")
-
     # Cast to pydantic object if necessary
     if isinstance(state, dict):
         state = ReportState(**state)
+
+    logger.info("Getting human feedback on the report plan")
 
     # Get sections
     sections = state.sections
@@ -417,12 +417,11 @@ def human_feedback(state: ReportState | dict, config: RunnableConfig) -> Command
 
 @retry_with_backoff
 def generate_queries(state: SectionState | dict, config: RunnableConfig) -> dict:
-    """Generate search queries for a report section"""
-    logger.info(f"Generating search queries for the section: {state.section.name}")
-
     # Cast to pydantic object if necessary
     if isinstance(state, dict):
         state = SectionState(**state)
+
+    logger.info(f"Generating search queries for the section: {state.section.name}")
 
     # Get state
     section = state.section
@@ -451,11 +450,11 @@ def generate_queries(state: SectionState | dict, config: RunnableConfig) -> dict
 @retry_with_backoff
 async def search_web(state: SectionState | dict, config: RunnableConfig) -> dict:
     """Search the web for each query, then return a list of raw sources and a formatted string of sources."""
-    logger.info("Searching the web for each query")
-
     # Cast to pydantic object if necessary
     if isinstance(state, dict):
         state = SectionState(**state)
+
+    logger.info("Searching the web for each query")
 
     # Get state
     search_queries = state.search_queries
@@ -486,11 +485,12 @@ async def search_web(state: SectionState | dict, config: RunnableConfig) -> dict
 @retry_with_backoff
 def write_section(state: SectionState | dict, config: RunnableConfig) -> Command[Literal[END, "search_web"]]:
     """Write a section of the report"""
-    logger.info(f"Writing the section: {state.section.name}")
 
     # Cast to pydantic object if necessary
     if isinstance(state, dict):
         state = SectionState(**state)
+
+    logger.info(f"Writing the section: {state.section.name}")
 
     # Get state
     section = state.section
@@ -535,11 +535,11 @@ def write_section(state: SectionState | dict, config: RunnableConfig) -> Command
 
 def gather_completed_sections(state: ReportState | dict) -> dict:
     """Gather completed sections from research and format them as context for writing the final sections"""
-    logger.info("Gathering completed sections from research")
-
     # Cast to pydantic object if necessary
     if isinstance(state, dict):
         state = ReportState(**state)
+
+    logger.info("Gathering completed sections from research")
 
     # List of completed sections
     completed_sections = state.completed_sections
@@ -553,10 +553,11 @@ def gather_completed_sections(state: ReportState | dict) -> dict:
 @retry_with_backoff
 def write_final_sections(state: SectionState | dict, config: RunnableConfig) -> dict:
     """Write final sections of the report, which do not require web search and use the completed sections as context"""
-    logger.info("Writing final sections of the report")
 
     # Get configuration
     configurable = ConfigurationReport.from_runnable_config(config)
+
+    logger.info("Writing final sections of the report")
 
     # Cast to pydantic object if necessary
     if isinstance(state, dict):
@@ -603,10 +604,11 @@ def initiate_final_section_writing(state: ReportState | dict) -> Command[Literal
 
 def compile_final_report(state: ReportState | dict, config: RunnableConfig) -> dict:
     """Compile the final report"""
-    logger.info("Compiling the final report")
 
     # Get configuration
     configurable = ConfigurationReport.from_runnable_config(config)
+
+    logger.info("Compiling the final report")
 
     # Cast to pydantic object if necessary
     if isinstance(state, dict):

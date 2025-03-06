@@ -288,10 +288,11 @@ async def generate_report_plan(state: ReportState | dict, config: RunnableConfig
     # Set writer model (model used for query writing and section writing)
     writer_provider = get_config_value(configurable.writer_provider)
     writer_model_name = get_config_value(configurable.writer_model)
-    writer_model = init_chat_model(model=writer_model_name, model_provider=writer_provider, temperature=0)
-    structured_llm = writer_model.with_structured_output(Queries)
     logger.debug(f"Writer provider: {writer_provider}")
     logger.debug(f"Writer model: {writer_model_name}")
+
+    writer_model = init_chat_model(model=writer_model_name, model_provider=writer_provider, temperature=0)
+    structured_llm = writer_model.with_structured_output(Queries)
 
     # Format system instructions
     system_instructions_query = report_planner_query_writer_instructions.format(

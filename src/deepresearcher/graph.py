@@ -457,9 +457,15 @@ async def search_web(state: SectionState | dict, config: RunnableConfig) -> dict
     # Search the web
     # TODO: max_tokens_per_source reduced from 5000 to 1000 due to Anthropic rate limiting. Find workaround.
     if search_api == "tavily":
+        logger.info("Searching with Tavily")
         search_results = await tavily_search_async(query_list)
         source_str = deduplicate_and_format_sources(search_results, max_tokens_per_source=1000, include_raw_content=True)
     elif search_api == "perplexity":
+        logger.info("Searching with Perplexity")
+        search_results = perplexity_search_2(query_list)
+        source_str = deduplicate_and_format_sources(search_results, max_tokens_per_source=1000, include_raw_content=False)
+    elif search_api == "duckduckgo":
+        logger.info("Searching with DuckDuckGo")
         search_results = perplexity_search_2(query_list)
         source_str = deduplicate_and_format_sources(search_results, max_tokens_per_source=1000, include_raw_content=False)
     else:

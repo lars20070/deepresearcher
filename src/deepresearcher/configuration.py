@@ -55,11 +55,11 @@ class ConfigurationMixin:
         values: dict[str, Any] = {}
         # Loop over all fields defined on the model and cast them immediately
         for field_name, model_field in cls.model_fields.items():
-            logger.debug(f"Processing field: '{field_name}'")
+            # logger.debug(f"Processing field: '{field_name}'")
             # Choose the value from the environment or the configurable dictionary
             value_new = os.environ.get(field_name.upper(), configurable.get(field_name))
             if value_new is not None:
-                logger.debug(f"New value for field '{field_name}': {value_new}")
+                # logger.debug(f"New value for field '{field_name}': {value_new}")
                 expected_type = model_field.annotation  # declared type
                 try:
                     values[field_name] = expected_type(value_new)

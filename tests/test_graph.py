@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import os
 from unittest.mock import patch
 
@@ -288,11 +289,13 @@ def test_generate_queries(section_state: SectionState, load_env: None) -> None:
 
 @pytest.mark.paid
 @pytest.mark.asyncio
-async def test_search_web(section_state: SectionState, load_env: None) -> None:
-    logger.info("Testing search_web() method.")
+@pytest.mark.parametrize("search_api", ["tavily", "perplexity", "duckduckgo"])
+async def test_search_web(section_state: SectionState, load_env: None, search_api: str) -> None:
+    logger.info(f"Testing search_web() method with '{search_api}'.")
+    os.environ["SEARCH_API"] = search_api
 
     result = await search_web(section_state, config={"configurable": {}})
-    logger.debug(f"Result of search_web():\n{result}")
+    # logger.debug(f"Result of search_web():\n{result}")
 
     assert "source_str" in result
     assert result["source_str"] is not None

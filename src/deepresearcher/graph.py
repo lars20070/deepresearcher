@@ -320,6 +320,21 @@ async def generate_report_plan(state: ReportState | dict, config: RunnableConfig
     elif search_api == "perplexity":
         search_results = perplexity_search_2(query_list)
         source_str = deduplicate_and_format_sources(search_results, max_tokens_per_source=1000, include_raw_content=False)
+    elif search_api == "duckduckgo":
+        logger.info("Searching with DuckDuckGo")
+        search_results = []
+        for query in query_list:
+            result = duckduckgo_search(query, max_results=3, fetch_full_page=True)
+            search_results.append(
+                {
+                    "query": query,
+                    "follow_up_questions": None,
+                    "answer": None,
+                    "images": [],
+                    "results": result["results"],
+                }
+            )
+        source_str = deduplicate_and_format_sources(search_results, max_tokens_per_source=1000, include_raw_content=False)
     else:
         raise ValueError(f"Unsupported search API: {configurable.search_api}")
     logger.debug(f"Search results:\n{source_str}")
@@ -466,7 +481,20 @@ async def search_web(state: SectionState | dict, config: RunnableConfig) -> dict
         source_str = deduplicate_and_format_sources(search_results, max_tokens_per_source=1000, include_raw_content=False)
     elif search_api == "duckduckgo":
         logger.info("Searching with DuckDuckGo")
-        search_results = perplexity_search_2(query_list)
+        search_results = []
+        for query in query_list:
+            # Get results for each query
+            result = duckduckgo_search(query, max_results=3, fetch_full_page=True)
+            # Add the query information to match expected format
+            search_results.append(
+                {
+                    "query": query,
+                    "follow_up_questions": None,
+                    "answer": None,
+                    "images": [],
+                    "results": result["results"],
+                }
+            )
         source_str = deduplicate_and_format_sources(search_results, max_tokens_per_source=1000, include_raw_content=False)
     else:
         raise ValueError(f"Unsupported search API: {configurable.search_api}")

@@ -294,8 +294,10 @@ async def test_search_web(section_state: SectionState, load_env: None, search_ap
     logger.info(f"Testing search_web() method with '{search_api}'.")
     os.environ["SEARCH_API"] = search_api
 
+    logger.debug(f"Number of search queries in section state: {len(section_state.search_queries)}")
+
     result = await search_web(section_state, config={"configurable": {}})
-    # logger.debug(f"Result of search_web():\n{result}")
+    logger.debug(f"Result of search_web():\n{result}")
 
     assert "source_str" in result
     assert result["source_str"] is not None

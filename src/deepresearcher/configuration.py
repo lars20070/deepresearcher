@@ -19,12 +19,14 @@ class SearchAPI(Enum):
 class PlannerProvider(Enum):
     OPENAI = "openai"
     GROQ = "groq"
+    OLLAMA = "ollama"
 
 
 class WriterProvider(Enum):
     ANTHROPIC = "anthropic"
     OPENAI = "openai"
     GROQ = "groq"
+    OLLAMA = "ollama"
 
 
 DEFAULT_REPORT_STRUCTURE = """Use this structure to create a report on the user-provided topic:

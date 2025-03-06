@@ -28,6 +28,19 @@ def retry_with_backoff(func: callable) -> callable:
     return retry(wait=wait_exponential(min=retry_min, max=retry_max), stop=stop_after_attempt(retry_attempts))(func)
 
 
+def fetch_page_content(url: str) -> str:
+    """Fetch the content of a webpage given its URL."""
+    import urllib.request
+
+    from bs4 import BeautifulSoup
+
+    response = urllib.request.urlopen(url, timeout=10)
+    html = response.read()
+    soup = BeautifulSoup(html, "html.parser")
+
+    return soup.get_text()
+
+
 @traceable
 def duckduckgo_search(query: str, max_results: int = 3, fetch_full_page: bool = False) -> dict[str, list[dict[str, str]]]:
     """Search the web using DuckDuckGo.
@@ -62,15 +75,7 @@ def duckduckgo_search(query: str, max_results: int = 3, fetch_full_page: bool = 
                 raw_content = content
                 if fetch_full_page:
                     try:
-                        # Try to fetch the full page content using curl
-                        import urllib.request
-
-                        from bs4 import BeautifulSoup
-
-                        response = urllib.request.urlopen(url)
-                        html = response.read()
-                        soup = BeautifulSoup(html, "html.parser")
-                        raw_content = soup.get_text()
+                        raw_content = fetch_page_content(url)
 
                     except Exception as e:
                         logger.error(f"Error: Failed to fetch full page content for {url}: {str(e)}")

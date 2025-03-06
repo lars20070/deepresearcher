@@ -28,19 +28,33 @@ def retry_with_backoff(func: callable) -> callable:
     return retry(wait=wait_exponential(min=retry_min, max=retry_max), stop=stop_after_attempt(retry_attempts))(func)
 
 
+@retry_with_backoff
+@traceable
 def fetch_page_content(url: str) -> str:
     """Fetch the content of a webpage given its URL."""
+    import urllib.error
     import urllib.request
 
     from bs4 import BeautifulSoup
 
-    response = urllib.request.urlopen(url, timeout=10)
-    html = response.read()
-    soup = BeautifulSoup(html, "html.parser")
+    try:
+        response = urllib.request.urlopen(url, timeout=10)
+        html = response.read()
+        soup = BeautifulSoup(html, "html.parser")
+        return soup.get_text()
+    except urllib.error.HTTPError as e:
+        if e.code in (403, 401):
+            logger.error(f"Authentication error for {url}: {e.code}")
+            return f"[Error: Access denied to {url} (code {e.code})]"
+        else:
+            logger.error(f"HTTP error for {url}: {e.code}")
+            raise  # Will be retried by decorator
+    except urllib.error.URLError as e:
+        logger.error(f"Network error for {url}: {str(e)}")
+        raise  # Will be retried by decorator
 
-    return soup.get_text()
 
-
+@retry_with_backoff
 @traceable
 def duckduckgo_search(query: str, max_results: int = 3, fetch_full_page: bool = False) -> dict[str, list[dict[str, str]]]:
     """Search the web using DuckDuckGo.
@@ -58,10 +72,19 @@ def duckduckgo_search(query: str, max_results: int = 3, fetch_full_page: bool = 
                 - raw_content (str): Same as content since DDG doesn't provide full page content
     """
     logger.info(f"Searching the web using DuckDuckGo for: {query}")
+    results = []
+
     try:
         with DDGS() as ddgs:
-            results = []
-            search_results = list(ddgs.text(query, max_results=max_results))
+            try:
+                search_results = list(ddgs.text(query, max_results=max_results))
+                if not search_results:
+                    logger.warning(f"DuckDuckGo returned no results for: {query}")
+                    return {"results": []}
+
+            except (ConnectionError, TimeoutError) as e:
+                logger.error(f"Network error during search: {str(e)}")
+                raise  # Will be retried by decorator
 
             for r in search_results:
                 url = r.get("href")
@@ -69,7 +92,7 @@ def duckduckgo_search(query: str, max_results: int = 3, fetch_full_page: bool = 
                 content = r.get("body")
 
                 if not all([url, title, content]):
-                    logger.info(f"Warning: Incomplete result from DuckDuckGo: {r}")
+                    logger.warning(f"Warning: Incomplete result from DuckDuckGo: {r}")
                     continue
 
                 raw_content = content
@@ -85,10 +108,11 @@ def duckduckgo_search(query: str, max_results: int = 3, fetch_full_page: bool = 
                 results.append(result)
 
             return {"results": results}
+
     except Exception as e:
         logger.error(f"Error in DuckDuckGo search: {str(e)}")
         logger.error(f"Full error details: {type(e).__name__}")
-        return {"results": []}
+        raise  # Will be retried by decorator
 
 
 @traceable

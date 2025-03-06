@@ -9,9 +9,23 @@ import requests
 from duckduckgo_search import DDGS
 from langsmith import traceable
 from tavily import AsyncTavilyClient, TavilyClient
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 from deepresearcher.logger import logger
 from deepresearcher.state import SearchQuery, Section
+
+
+def retry_with_backoff(func: callable) -> callable:
+    """
+    Retry decorator with exponential backoff.
+
+    For example, the first retry will wait 20 seconds, the second 40 seconds, the third 80 seconds, and so on. Stopping after 5 attempts.
+    """
+    retry_min = 20
+    retry_max = 1000
+    retry_attempts = 5
+
+    return retry(wait=wait_exponential(min=retry_min, max=retry_max), stop=stop_after_attempt(retry_attempts))(func)
 
 
 @traceable

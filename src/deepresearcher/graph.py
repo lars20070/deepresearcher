@@ -13,7 +13,6 @@ from langchain_ollama import ChatOllama
 from langgraph.constants import Send
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, interrupt
-from tenacity import retry, stop_after_attempt, wait_exponential
 
 from deepresearcher.configuration import Configuration, ConfigurationReport
 from deepresearcher.logger import logger
@@ -49,23 +48,10 @@ from deepresearcher.utils import (
     get_config_value,
     perplexity_search,
     perplexity_search_2,
+    retry_with_backoff,
     tavily_search,
     tavily_search_async,
 )
-
-
-def retry_with_backoff(func: callable) -> callable:
-    """
-    Retry decorator with exponential backoff.
-
-    For example, the first retry will wait 20 seconds, the second 40 seconds, the third 80 seconds, and so on. Stopping after 5 attempts.
-    """
-    retry_min = 20
-    retry_max = 1000
-    retry_attempts = 5
-
-    return retry(wait=wait_exponential(min=retry_min, max=retry_max), stop=stop_after_attempt(retry_attempts))(func)
-
 
 #########################################################################
 #

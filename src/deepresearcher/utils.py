@@ -30,6 +30,7 @@ def duckduckgo_search(query: str, max_results: int = 3, fetch_full_page: bool = 
                 - content (str): Snippet/summary of the content
                 - raw_content (str): Same as content since DDG doesn't provide full page content
     """
+    logger.info(f"Searching the web using DuckDuckGo for: {query}")
     try:
         with DDGS() as ddgs:
             results = []
@@ -58,7 +59,7 @@ def duckduckgo_search(query: str, max_results: int = 3, fetch_full_page: bool = 
                         raw_content = soup.get_text()
 
                     except Exception as e:
-                        logger.info(f"Warning: Failed to fetch full page content for {url}: {str(e)}")
+                        logger.error(f"Error: Failed to fetch full page content for {url}: {str(e)}")
 
                 # Add result to list
                 result = {"title": title, "url": url, "content": content, "raw_content": raw_content}
@@ -66,8 +67,8 @@ def duckduckgo_search(query: str, max_results: int = 3, fetch_full_page: bool = 
 
             return {"results": results}
     except Exception as e:
-        logger.info(f"Error in DuckDuckGo search: {str(e)}")
-        logger.info(f"Full error details: {type(e).__name__}")
+        logger.error(f"Error in DuckDuckGo search: {str(e)}")
+        logger.error(f"Full error details: {type(e).__name__}")
         return {"results": []}
 
 

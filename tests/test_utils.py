@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import json
 import os
 
 import pytest
@@ -19,7 +20,9 @@ def test_duckduckgo_search(topic: str, load_env: None) -> None:
     # Check whether the result contains a 'results' key
     assert "results" in result
     logger.debug(f"Number of search results: {len(result['results'])}")
-    logger.debug(f"Search result list: {result['results']}")
+    if len(result["results"]) > 0:
+        for i, item in enumerate(result["results"]):
+            logger.debug(f"Result {i + 1}:\n{json.dumps(item, indent=2)}")
 
     # Check if the number of results is correct
     assert len(result["results"]) == n

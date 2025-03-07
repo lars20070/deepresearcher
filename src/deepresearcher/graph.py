@@ -301,10 +301,16 @@ async def generate_report_plan(state: ReportState | dict, config: RunnableConfig
     logger.debug(f"System instructions:\n{system_instructions_query}")
 
     # Generate queries
-    results = structured_llm.invoke(
-        [SystemMessage(content=system_instructions_query)]
-        + [HumanMessage(content="Generate search queries that will help with planning the sections of the report.")]
-    )
+    try:
+        results = structured_llm.invoke(
+            [SystemMessage(content=system_instructions_query)]
+            + [HumanMessage(content="Generate search queries that will help with planning the sections of the report.")]
+        )
+    except Exception as e:
+        logger.error(f"Error from structured LLM: {str(e)}")
+        if hasattr(e, "response") and hasattr(e.response, "json"):
+            logger.error(f"Error details: {e.response.json()}")
+        raise
     logger.debug(f"Queries generated:\n{results.queries}")
 
     # Web search
@@ -364,15 +370,21 @@ async def generate_report_plan(state: ReportState | dict, config: RunnableConfig
 
     # Generate sections
     structured_llm = planner_llm.with_structured_output(Sections)
-    report_sections = structured_llm.invoke(
-        [SystemMessage(content=system_instructions_sections)]
-        + [
-            HumanMessage(
-                content="Generate the sections of the report. Your response must include a 'sections' field containing a list of sections. \
-                    Each section must have: name, description, plan, research, and content fields."
-            )
-        ]
-    )
+    try:
+        report_sections = structured_llm.invoke(
+            [SystemMessage(content=system_instructions_sections)]
+            + [
+                HumanMessage(
+                    content="Generate the sections of the report. Your response must include a 'sections' field containing a list of sections. \
+                        Each section must have: name, description, plan, research, and content fields."
+                )
+            ]
+        )
+    except Exception as e:
+        logger.error(f"Error from structured LLM: {str(e)}")
+        if hasattr(e, "response") and hasattr(e.response, "json"):
+            logger.error(f"Error details: {e.response.json()}")
+        raise
 
     # Get sections
     sections = report_sections.sections

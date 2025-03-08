@@ -13,6 +13,7 @@ from langchain_ollama import ChatOllama
 from langgraph.constants import Send
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, interrupt
+from pydantic import BaseModel
 
 from deepresearcher.configuration import Configuration, ConfigurationReport
 from deepresearcher.logger import logger
@@ -262,12 +263,22 @@ graph = builder.compile()
 #########################################################################
 
 
+def _normalize_state(state: ReportState | SectionState | dict, state_class: type[BaseModel]) -> BaseModel:
+    """
+    Cast `state` object to pydantic class.
+
+    LangGraph is passing `dict` objects between nodes. But all state objects are pydantic.
+    That makes type coercion at runtime at the beginning of each node method necessary.
+    """
+    if isinstance(state, dict):
+        return state_class(**state)
+    return state
+
+
 # Define nodes
 @retry_with_backoff
 async def generate_report_plan(state: ReportState | dict, config: RunnableConfig) -> dict:
-    # Cast to pydantic object if necessary
-    if isinstance(state, dict):
-        state = ReportState(**state)
+    state = _normalize_state(state, ReportState)
 
     logger.info(f"Generating the report plan for the topic: {state.topic}")
 
@@ -393,9 +404,7 @@ async def generate_report_plan(state: ReportState | dict, config: RunnableConfig
 
 
 def human_feedback(state: ReportState | dict, config: RunnableConfig) -> Command[Literal["generate_report_plan", "build_section_with_web_research"]]:
-    # Cast to pydantic object if necessary
-    if isinstance(state, dict):
-        state = ReportState(**state)
+    state = _normalize_state(state, ReportState)
 
     logger.info("Getting human feedback on the report plan")
 
@@ -431,9 +440,7 @@ def human_feedback(state: ReportState | dict, config: RunnableConfig) -> Command
 
 @retry_with_backoff
 def generate_queries(state: SectionState | dict, config: RunnableConfig) -> dict:
-    # Cast to pydantic object if necessary
-    if isinstance(state, dict):
-        state = SectionState(**state)
+    state = _normalize_state(state, SectionState)
 
     logger.info(f"Generating search queries for the section: {state.section.name}")
 
@@ -464,9 +471,7 @@ def generate_queries(state: SectionState | dict, config: RunnableConfig) -> dict
 @retry_with_backoff
 async def search_web(state: SectionState | dict, config: RunnableConfig) -> dict:
     """Search the web for each query, then return a list of raw sources and a formatted string of sources."""
-    # Cast to pydantic object if necessary
-    if isinstance(state, dict):
-        state = SectionState(**state)
+    state = _normalize_state(state, SectionState)
 
     logger.info("Searching the web for each query")
 
@@ -518,10 +523,7 @@ async def search_web(state: SectionState | dict, config: RunnableConfig) -> dict
 @retry_with_backoff
 def write_section(state: SectionState | dict, config: RunnableConfig) -> Command[Literal[END, "search_web"]]:
     """Write a section of the report"""
-
-    # Cast to pydantic object if necessary
-    if isinstance(state, dict):
-        state = SectionState(**state)
+    state = _normalize_state(state, SectionState)
 
     logger.info(f"Writing the section: {state.section.name}")
 
@@ -568,9 +570,7 @@ def write_section(state: SectionState | dict, config: RunnableConfig) -> Command
 
 def gather_completed_sections(state: ReportState | dict) -> dict:
     """Gather completed sections from research and format them as context for writing the final sections"""
-    # Cast to pydantic object if necessary
-    if isinstance(state, dict):
-        state = ReportState(**state)
+    state = _normalize_state(state, ReportState)
 
     logger.info("Gathering completed sections from research")
 
@@ -586,15 +586,12 @@ def gather_completed_sections(state: ReportState | dict) -> dict:
 @retry_with_backoff
 def write_final_sections(state: SectionState | dict, config: RunnableConfig) -> dict:
     """Write final sections of the report, which do not require web search and use the completed sections as context"""
-
-    # Get configuration
-    configurable = ConfigurationReport.from_runnable_config(config)
+    state = _normalize_state(state, SectionState)
 
     logger.info("Writing final sections of the report")
 
-    # Cast to pydantic object if necessary
-    if isinstance(state, dict):
-        state = SectionState(**state)
+    # Get configuration
+    configurable = ConfigurationReport.from_runnable_config(config)
 
     # Get sections
     section = state.section
@@ -622,10 +619,7 @@ def write_final_sections(state: SectionState | dict, config: RunnableConfig) -> 
 
 def initiate_final_section_writing(state: ReportState | dict) -> Command[Literal[END, "write_final_sections"]]:
     """Write any final sections using the Send API to parallelize the process"""
-
-    # Cast to pydantic object if necessary
-    if isinstance(state, dict):
-        state = ReportState(**state)
+    state = _normalize_state(state, ReportState)
 
     # Kick off section writing in parallel via Send() API for any sections that do not require research
     return [
@@ -637,15 +631,12 @@ def initiate_final_section_writing(state: ReportState | dict) -> Command[Literal
 
 def compile_final_report(state: ReportState | dict, config: RunnableConfig) -> dict:
     """Compile the final report"""
+    state = _normalize_state(state, ReportState)
 
     # Get configuration
     configurable = ConfigurationReport.from_runnable_config(config)
 
     logger.info("Compiling the final report")
-
-    # Cast to pydantic object if necessary
-    if isinstance(state, dict):
-        state = ReportState(**state)
 
     # Get sections
     sections = state.sections

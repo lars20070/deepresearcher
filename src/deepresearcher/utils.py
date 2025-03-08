@@ -1,16 +1,60 @@
 #!/usr/bin/env python3
 
+import asyncio
 import os
+from enum import Enum
 from typing import Any
 
 import requests
 from duckduckgo_search import DDGS
 from langsmith import traceable
-from tavily import TavilyClient
+from tavily import AsyncTavilyClient, TavilyClient
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 from deepresearcher.logger import logger
+from deepresearcher.state import SearchQuery, Section
 
 
+def retry_with_backoff(func: callable) -> callable:
+    """
+    Retry decorator with exponential backoff.
+
+    For example, the first retry will wait 20 seconds, the second 40 seconds, the third 80 seconds, and so on. Stopping after 5 attempts.
+    """
+    retry_min = 20
+    retry_max = 1000
+    retry_attempts = 5
+
+    return retry(wait=wait_exponential(min=retry_min, max=retry_max), stop=stop_after_attempt(retry_attempts))(func)
+
+
+@retry_with_backoff
+@traceable
+def fetch_page_content(url: str) -> str:
+    """Fetch the content of a webpage given its URL."""
+    import urllib.error
+    import urllib.request
+
+    from bs4 import BeautifulSoup
+
+    try:
+        response = urllib.request.urlopen(url, timeout=10)
+        html = response.read()
+        soup = BeautifulSoup(html, "html.parser")
+        return soup.get_text()
+    except urllib.error.HTTPError as e:
+        if e.code in (403, 401):
+            logger.error(f"Authentication error for {url}: {e.code}")
+            return f"[Error: Access denied to {url} (code {e.code})]"
+        else:
+            logger.error(f"HTTP error for {url}: {e.code}")
+            raise  # Will be retried by decorator
+    except urllib.error.URLError as e:
+        logger.error(f"Network error for {url}: {str(e)}")
+        raise  # Will be retried by decorator
+
+
+@retry_with_backoff
 @traceable
 def duckduckgo_search(query: str, max_results: int = 3, fetch_full_page: bool = False) -> dict[str, list[dict[str, str]]]:
     """Search the web using DuckDuckGo.
@@ -27,10 +71,20 @@ def duckduckgo_search(query: str, max_results: int = 3, fetch_full_page: bool = 
                 - content (str): Snippet/summary of the content
                 - raw_content (str): Same as content since DDG doesn't provide full page content
     """
+    logger.info(f"Searching the web using DuckDuckGo for: {query}")
+    results = []
+
     try:
         with DDGS() as ddgs:
-            results = []
-            search_results = list(ddgs.text(query, max_results=max_results))
+            try:
+                search_results = list(ddgs.text(query, max_results=max_results))
+                if not search_results:
+                    logger.warning(f"DuckDuckGo returned no results for: {query}")
+                    return {"results": []}
+
+            except (ConnectionError, TimeoutError) as e:
+                logger.error(f"Network error during search: {str(e)}")
+                raise  # Will be retried by decorator
 
             for r in search_results:
                 url = r.get("href")
@@ -38,34 +92,27 @@ def duckduckgo_search(query: str, max_results: int = 3, fetch_full_page: bool = 
                 content = r.get("body")
 
                 if not all([url, title, content]):
-                    logger.info(f"Warning: Incomplete result from DuckDuckGo: {r}")
+                    logger.warning(f"Warning: Incomplete result from DuckDuckGo: {r}")
                     continue
 
                 raw_content = content
                 if fetch_full_page:
                     try:
-                        # Try to fetch the full page content using curl
-                        import urllib.request
-
-                        from bs4 import BeautifulSoup
-
-                        response = urllib.request.urlopen(url)
-                        html = response.read()
-                        soup = BeautifulSoup(html, "html.parser")
-                        raw_content = soup.get_text()
+                        raw_content = fetch_page_content(url)
 
                     except Exception as e:
-                        logger.info(f"Warning: Failed to fetch full page content for {url}: {str(e)}")
+                        logger.error(f"Error: Failed to fetch full page content for {url}: {str(e)}")
 
                 # Add result to list
                 result = {"title": title, "url": url, "content": content, "raw_content": raw_content}
                 results.append(result)
 
             return {"results": results}
+
     except Exception as e:
-        logger.info(f"Error in DuckDuckGo search: {str(e)}")
-        logger.info(f"Full error details: {type(e).__name__}")
-        return {"results": []}
+        logger.error(f"Error in DuckDuckGo search: {str(e)}")
+        logger.error(f"Full error details: {type(e).__name__}")
+        raise  # Will be retried by decorator
 
 
 @traceable
@@ -214,3 +261,148 @@ def deduplicate_and_format_sources(search_response: dict, max_tokens_per_source:
             formatted_text += f"Full source content limited to {max_tokens_per_source} tokens: {raw_content}\n\n"
 
     return formatted_text.strip()
+
+
+def get_config_value(value: str | Enum) -> str:
+    """
+    Helper function to handle both string and enum cases of configuration values
+    """
+    return value if isinstance(value, str) else value.value
+
+
+def format_sections(sections: list[Section]) -> str:
+    """Format a list of sections into a string"""
+    formatted_str = ""
+    for idx, section in enumerate(sections, 1):
+        formatted_str += f"""
+            {"=" * 60}
+            Section {idx}: {section.name}
+            {"=" * 60}
+            Description:
+            {section.description}
+            Requires Research: 
+            {section.research}
+
+            Content:
+            {section.content if section.content else "[Not yet written]"}
+
+            """
+    return formatted_str
+
+
+@traceable
+async def tavily_search_async(search_queries: list[str]) -> list[dict]:
+    """
+    Performs concurrent web searches using the Tavily API.
+
+    Args:
+        search_queries (List[SearchQuery]): List of search queries to process
+
+    Returns:
+            List[dict]: List of search responses from Tavily API, one per query. Each response has format:
+                {
+                    'query': str, # The original search query
+                    'follow_up_questions': None,
+                    'answer': None,
+                    'images': list,
+                    'results': [                     # List of search results
+                        {
+                            'title': str,            # Title of the webpage
+                            'url': str,              # URL of the result
+                            'content': str,          # Summary/snippet of content
+                            'score': float,          # Relevance score
+                            'raw_content': str|None  # Full page content if available
+                        },
+                        ...
+                    ]
+                }
+    """
+
+    search_tasks = []
+    tavily_async_client = AsyncTavilyClient()
+    for query in search_queries:
+        search_tasks.append(tavily_async_client.search(query, max_results=5, include_raw_content=True, topic="general"))
+
+    # Execute all searches concurrently
+    search_docs = await asyncio.gather(*search_tasks)
+
+    return search_docs
+
+
+@traceable
+def perplexity_search_2(search_queries: list[SearchQuery]) -> list[dict]:
+    """Search the web using the Perplexity API.
+
+    Args:
+        search_queries (List[SearchQuery]): List of search queries to process
+
+    Returns:
+        List[dict]: List of search responses from Perplexity API, one per query. Each response has format:
+            {
+                'query': str,                    # The original search query
+                'follow_up_questions': None,
+                'answer': None,
+                'images': list,
+                'results': [                     # List of search results
+                    {
+                        'title': str,            # Title of the search result
+                        'url': str,              # URL of the result
+                        'content': str,          # Summary/snippet of content
+                        'score': float,          # Relevance score
+                        'raw_content': str|None  # Full content or None for secondary citations
+                    },
+                    ...
+                ]
+            }
+    """
+
+    headers = {"accept": "application/json", "content-type": "application/json", "Authorization": f"Bearer {os.getenv('PERPLEXITY_API_KEY')}"}
+
+    search_docs = []
+    for query in search_queries:
+        payload = {
+            "model": "sonar-pro",
+            "messages": [
+                {"role": "system", "content": "Search the web and provide factual information with sources."},
+                {"role": "user", "content": query},
+            ],
+        }
+
+        response = requests.post("https://api.perplexity.ai/chat/completions", headers=headers, json=payload)
+        response.raise_for_status()  # Raise exception for bad status codes
+
+        # Parse the response
+        data = response.json()
+        content = data["choices"][0]["message"]["content"]
+        citations = data.get("citations", ["https://perplexity.ai"])
+
+        # Create results list for this query
+        results = []
+
+        # First citation gets the full content
+        results.append(
+            {
+                "title": "Perplexity Search, Source 1",
+                "url": citations[0],
+                "content": content,
+                "raw_content": content,
+                "score": 1.0,  # Adding score to match Tavily format
+            }
+        )
+
+        # Add additional citations without duplicating content
+        for i, citation in enumerate(citations[1:], start=2):
+            results.append(
+                {
+                    "title": f"Perplexity Search, Source {i}",
+                    "url": citation,
+                    "content": "See primary source for full content",
+                    "raw_content": None,
+                    "score": 0.5,  # Lower score for secondary sources
+                }
+            )
+
+        # Format response to match Tavily structure
+        search_docs.append({"query": query, "follow_up_questions": None, "answer": None, "images": [], "results": results})
+
+    return search_docs

@@ -35,8 +35,6 @@
     "pytest",
     "ollama",
     "codestral",
-    "openai",
-    "nomic",
     "pylint",
     "Nilse",
     "isort",
@@ -47,9 +45,6 @@
     "xgboost",
     "scipy",
     "dotenv",
-    "pycoingecko",
-    "pyarrow",
-    "cosmpy",
     "kwargs",
     "virtualenv",
     "venv",
@@ -60,6 +55,13 @@
     "xdist",
     "pydocstyle",
     "duckduckgo",
+    "groq",
+    "pydantic",
+    "asyncio",
+    "xetex",
+    "xelatex",
+    "pypandoc",
+    "isinstance",
   ],
   "cSpell.languageSettings": [
     {
@@ -84,5 +86,6 @@
       "title": "deepresearcher",
       "pattern": "deepresearcher.log"
     },
-  ]
+  ],
+  "codeQL.createQuery.qlPackLocation": "${workspaceFolder}"
 }

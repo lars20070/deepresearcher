@@ -8,6 +8,7 @@ from langchain.chat_models import init_chat_model
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
 
+from deepresearcher.configuration import DEFAULT_REPORT_STRUCTURE
 from deepresearcher.graph import (
     _generate_queries,
     compile_final_report,
@@ -28,6 +29,7 @@ from deepresearcher.graph import (
     write_section,
 )
 from deepresearcher.logger import logger
+from deepresearcher.prompts import report_planner_query_writer_instructions
 from deepresearcher.state import ReportState, Section, SectionState, SummaryState
 
 
@@ -217,45 +219,22 @@ def test__generate_queries(topic: str, load_env: None) -> None:
 
     provider = "anthropic"
     model = "claude-3-7-sonnet-latest"
-    instructions = """
-        You are an expert technical writer, helping to plan a report. 
-
-        <Report topic>
-        syzygy
-        </Report topic>
-
-        <Report organization>
-        Use this structure to create a report on the user-provided topic:
-
-        1. Introduction (no research needed)
-        - Brief overview of the topic area
-
-        2. Main Body Sections:
-        - Each section should focus on a sub-topic of the user-provided topic
-        
-        3. Conclusion
-        - Aim for 1 structural element (either a list or table) that distills the main body sections 
-        - Provide a concise summary of the report
-        </Report organization>
-
-        <Task>
-        Your goal is to generate 2 search queries that will help gather comprehensive information for planning the report sections. 
-
-        The queries should:
-
-        1. Be related to the topic of the report
-        2. Help satisfy the requirements specified in the report organization
-
-        Make the queries specific enough to find high-quality, relevant sources while covering the breadth needed for the report structure.
-        </Task>
-        """
+    instructions = report_planner_query_writer_instructions.format(
+        topic=topic,
+        report_organization=DEFAULT_REPORT_STRUCTURE,
+        number_of_queries=2,
+    )
     queries = _generate_queries(
         provider=provider,
         model=model,
         instructions=instructions,
     )
+    logger.debug(f"Generated search queries:\n{queries}")
+
     assert queries is not None
     assert len(queries) > 0
+    assert queries[0] is not None
+    assert topic in queries[0]
 
 
 @pytest.mark.paid

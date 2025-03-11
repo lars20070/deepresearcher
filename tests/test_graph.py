@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from deepresearcher.configuration import DEFAULT_REPORT_STRUCTURE
 from deepresearcher.graph import (
     _generate_queries,
+    _generate_sections,
     compile_final_report,
     finalize_summary,
     gather_completed_sections,
@@ -21,6 +22,7 @@ from deepresearcher.graph import (
     graph_report,
     human_feedback,
     reflect_on_summary,
+    report_planner_instructions,
     route_research,
     search_web,
     summarize_sources,
@@ -238,13 +240,37 @@ def test__generate_queries(topic: str, load_env: None) -> None:
 
 
 @pytest.mark.paid
+def test__generate_sections(topic: str, search_result: str, load_env: None) -> None:
+    logger.info("Testing generation of sections")
+
+    provider = "openai"
+    model = "o1"
+    instructions = report_planner_instructions.format(
+        topic=topic,
+        report_organization=DEFAULT_REPORT_STRUCTURE,
+        context=search_result,
+        feedback="Looks good.",
+    )
+    sections = _generate_sections(
+        provider=provider,
+        model=model,
+        instructions=instructions,
+    )
+    logger.debug(f"Generated sections:\n{sections}")
+
+    assert sections is not None
+    assert len(sections) > 0
+    assert sections[0] is not None
+
+
+@pytest.mark.paid
 @pytest.mark.asyncio
 async def test_generate_report_plan(topic: str, load_env: None) -> None:
     logger.info("Testing generation of the report plan.")
 
     state = ReportState(topic=topic)
     result = await generate_report_plan(state, config={})
-    logger.debug(f"Report plan: {result}")
+    logger.debug(f"Report plan:\n{result}")
 
 
 def test_human_feedback() -> None:

@@ -277,7 +277,7 @@ def _normalize_state(state: ReportState | SectionState | dict, state_class: type
 
 def _generate_queries(provider: str, model: str, instructions: str) -> list:
     """
-    Generate queries
+    Generate search queries for the report planning
     """
 
     writer_model = init_chat_model(
@@ -304,6 +304,49 @@ def _generate_queries(provider: str, model: str, instructions: str) -> list:
     query_list = [query.search_query for query in results.queries]
 
     return query_list
+
+
+def _generate_sections(provider: str, model: str, instructions: str) -> list:
+    """
+    Generate sections of the report
+
+    Args:
+        provider (str): The provider of the model
+        model (str): The model to use
+        instructions (str): The instructions to generate the sections
+
+    Returns:
+        list: The sections of the report.
+    """
+
+    # Set the planner model
+    planner_llm = init_chat_model(
+        model_provider=provider,
+        model=model,
+    )
+
+    # Generate sections
+    structured_llm = planner_llm.with_structured_output(Sections)
+    try:
+        report_sections = structured_llm.invoke(
+            [SystemMessage(content=instructions)]
+            + [
+                HumanMessage(
+                    content="Generate the sections of the report. Your response must include a 'sections' field containing a list of sections. \
+                        Each section must have: name, description, plan, research, and content fields."
+                )
+            ]
+        )
+    except Exception as e:
+        logger.error(f"Error from structured LLM: {str(e)}")
+        if hasattr(e, "response") and hasattr(e.response, "json"):
+            logger.error(f"Error details: {e.response.json()}")
+        raise
+
+    # Get sections
+    sections = report_sections.sections
+
+    return sections
 
 
 # Define nodes
@@ -377,7 +420,10 @@ async def generate_report_plan(state: ReportState | dict, config: RunnableConfig
 
     # Format system instructions
     system_instructions_sections = report_planner_instructions.format(
-        topic=topic, report_organization=report_structure, context=source_str, feedback=feedback
+        topic=topic,
+        report_organization=report_structure,
+        context=source_str,
+        feedback=feedback,
     )
 
     # Set the planner provider
@@ -394,29 +440,12 @@ async def generate_report_plan(state: ReportState | dict, config: RunnableConfig
     logger.debug(f"Planner provider: {planner_provider}")
     logger.debug(f"Planner model: {planner_model}")
 
-    # Set the planner model
-    planner_llm = init_chat_model(model=planner_model, model_provider=planner_provider)
-
-    # Generate sections
-    structured_llm = planner_llm.with_structured_output(Sections)
-    try:
-        report_sections = structured_llm.invoke(
-            [SystemMessage(content=system_instructions_sections)]
-            + [
-                HumanMessage(
-                    content="Generate the sections of the report. Your response must include a 'sections' field containing a list of sections. \
-                        Each section must have: name, description, plan, research, and content fields."
-                )
-            ]
-        )
-    except Exception as e:
-        logger.error(f"Error from structured LLM: {str(e)}")
-        if hasattr(e, "response") and hasattr(e.response, "json"):
-            logger.error(f"Error details: {e.response.json()}")
-        raise
-
-    # Get sections
-    sections = report_sections.sections
+    sections = _generate_sections(
+        provider=planner_provider,
+        model=planner_model,
+        instructions=system_instructions_sections,
+    )
+    logger.debug(f"Sections generated:\n{sections}")
 
     return {"sections": sections}
 

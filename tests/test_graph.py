@@ -9,6 +9,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
 
 from deepresearcher.graph import (
+    _generate_queries,
     compile_final_report,
     finalize_summary,
     gather_completed_sections,
@@ -25,7 +26,6 @@ from deepresearcher.graph import (
     web_research,
     write_final_sections,
     write_section,
-    _generate_queries,
 )
 from deepresearcher.logger import logger
 from deepresearcher.state import ReportState, Section, SectionState, SummaryState

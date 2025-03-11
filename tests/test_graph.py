@@ -25,6 +25,7 @@ from deepresearcher.graph import (
     web_research,
     write_final_sections,
     write_section,
+    _generate_queries,
 )
 from deepresearcher.logger import logger
 from deepresearcher.state import ReportState, Section, SectionState, SummaryState
@@ -208,6 +209,53 @@ def test_EXAMPLE_chat_model_openai(topic: str, load_env: None) -> None:
 
     assert joke_response.setup is not None
     assert joke_response.punchline is not None
+
+
+@pytest.mark.paid
+def test__generate_queries(topic: str, load_env: None) -> None:
+    logger.info("Testing generation of search queries")
+
+    provider = "anthropic"
+    model = "claude-3-7-sonnet-latest"
+    instructions = """
+        You are an expert technical writer, helping to plan a report. 
+
+        <Report topic>
+        syzygy
+        </Report topic>
+
+        <Report organization>
+        Use this structure to create a report on the user-provided topic:
+
+        1. Introduction (no research needed)
+        - Brief overview of the topic area
+
+        2. Main Body Sections:
+        - Each section should focus on a sub-topic of the user-provided topic
+        
+        3. Conclusion
+        - Aim for 1 structural element (either a list or table) that distills the main body sections 
+        - Provide a concise summary of the report
+        </Report organization>
+
+        <Task>
+        Your goal is to generate 2 search queries that will help gather comprehensive information for planning the report sections. 
+
+        The queries should:
+
+        1. Be related to the topic of the report
+        2. Help satisfy the requirements specified in the report organization
+
+        Make the queries specific enough to find high-quality, relevant sources while covering the breadth needed for the report structure.
+        </Task>
+        """
+    queries = _generate_queries(
+        provider=provider,
+        model=model,
+        instructions=instructions,
+    )
+    assert queries is not None
+    assert len(queries) > 0
 
 
 @pytest.mark.paid

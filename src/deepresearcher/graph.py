@@ -275,6 +275,37 @@ def _normalize_state(state: ReportState | SectionState | dict, state_class: type
     return state
 
 
+def _generate_queries(provider: str, model: str, instructions: str) -> list:
+    """
+    Generate queries
+    """
+
+    writer_model = init_chat_model(
+        model_provider=provider,
+        model=model,
+        temperature=0,
+    )
+    structured_llm = writer_model.with_structured_output(Queries)
+
+    # Generate queries
+    try:
+        results = structured_llm.invoke(
+            [SystemMessage(content=instructions)]
+            + [HumanMessage(content="Generate search queries that will help with planning the sections of the report.")]
+        )
+    except Exception as e:
+        logger.error(f"Error from structured LLM: {str(e)}")
+        if hasattr(e, "response") and hasattr(e.response, "json"):
+            logger.error(f"Error details: {e.response.json()}")
+        raise
+    logger.debug(f"Queries generated:\n{results.queries}")
+
+    # Web search
+    query_list = [query.search_query for query in results.queries]
+
+    return query_list
+
+
 # Define nodes
 @retry_with_backoff
 async def generate_report_plan(state: ReportState | dict, config: RunnableConfig) -> dict:
@@ -296,36 +327,23 @@ async def generate_report_plan(state: ReportState | dict, config: RunnableConfig
     if isinstance(report_structure, dict):
         report_structure = str(report_structure)
 
-    # Set writer model (model used for query writing and section writing)
-    writer_provider = get_config_value(configurable.writer_provider)
-    writer_model_name = get_config_value(configurable.writer_model)
-    logger.debug(f"Writer provider: {writer_provider}")
-    logger.debug(f"Writer model: {writer_model_name}")
-
-    writer_model = init_chat_model(model=writer_model_name, model_provider=writer_provider, temperature=0)
-    structured_llm = writer_model.with_structured_output(Queries)
-
     # Format system instructions
     system_instructions_query = report_planner_query_writer_instructions.format(
         topic=topic, report_organization=report_structure, number_of_queries=number_of_queries
     )
     logger.debug(f"System instructions:\n{system_instructions_query}")
 
-    # Generate queries
-    try:
-        results = structured_llm.invoke(
-            [SystemMessage(content=system_instructions_query)]
-            + [HumanMessage(content="Generate search queries that will help with planning the sections of the report.")]
-        )
-    except Exception as e:
-        logger.error(f"Error from structured LLM: {str(e)}")
-        if hasattr(e, "response") and hasattr(e.response, "json"):
-            logger.error(f"Error details: {e.response.json()}")
-        raise
-    logger.debug(f"Queries generated:\n{results.queries}")
+    # Set writer model (model used for query writing and section writing)
+    writer_provider = get_config_value(configurable.writer_provider)
+    writer_model_name = get_config_value(configurable.writer_model)
+    logger.debug(f"Writer provider: {writer_provider}")
+    logger.debug(f"Writer model: {writer_model_name}")
 
-    # Web search
-    query_list = [query.search_query for query in results.queries]
+    query_list = _generate_queries(
+        provider=writer_provider,
+        model=writer_model_name,
+        instructions=system_instructions_query,
+    )
 
     # Get the search API
     search_api = get_config_value(configurable.search_api)

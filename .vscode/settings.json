@@ -79,7 +79,8 @@
     }
   ],
   "shellcheck.ignorePatterns": {
-    "**/.env-example": true,
+    "**/.env.example": true,
+    "**/.env": true,
   },
   "logViewer.watch": [
     {

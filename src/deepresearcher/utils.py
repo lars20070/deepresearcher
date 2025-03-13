@@ -3,16 +3,22 @@
 import asyncio
 import os
 from enum import Enum
-from typing import Any
+from typing import Any, TypeVar
 
 import requests
 from duckduckgo_search import DDGS
+from langchain.chat_models import init_chat_model
+from langchain_core.messages import HumanMessage, SystemMessage
 from langsmith import traceable
+from pydantic import BaseModel
 from tavily import AsyncTavilyClient, TavilyClient
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from deepresearcher.logger import logger
 from deepresearcher.state import SearchQuery, Section
+
+# Return type for schema classes
+T = TypeVar("T", bound=BaseModel)
 
 
 def retry_with_backoff(func: callable) -> callable:
@@ -406,3 +412,37 @@ def perplexity_search_2(search_queries: list[SearchQuery]) -> list[dict]:
         search_docs.append({"query": query, "follow_up_questions": None, "answer": None, "images": [], "results": results})
 
     return search_docs
+
+
+def invoke_llm(provider: str, model: str, prompt: list[SystemMessage | HumanMessage], schema_class: type[T] = None) -> T:
+    """
+    Invoke an LLM to generate either unstructured content
+    or structured content according to a schema class.
+
+    Args:
+        provider: Model provider (e.g. 'openai', 'anthropic')
+        model: Model name to use (e.g. 'o1', 'laude-3-5-sonnet-latest')
+        prompt: prompt passing to the LLM
+        schema_class: Pydantic model class for structured output
+
+    Returns:
+        The structured response object
+    """
+    # Initialize model
+    llm = init_chat_model(
+        model_provider=provider,
+        model=model,
+    )
+    if schema_class is not None:
+        # LLM generates structured output
+        llm = llm.with_structured_output(schema_class)
+
+    # Generate response
+    try:
+        result = llm.invoke(prompt)
+        return result
+    except Exception as e:
+        logger.error(f"Error from structured LLM: {str(e)}")
+        if hasattr(e, "response") and hasattr(e.response, "json"):
+            logger.error(f"Error details: {e.response.json()}")
+        raise

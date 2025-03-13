@@ -3,10 +3,9 @@
 import json
 import os
 import re
-from typing import Literal, TypeVar
+from typing import Literal
 
 import pypandoc
-from langchain.chat_models import init_chat_model
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_ollama import ChatOllama
@@ -47,15 +46,13 @@ from deepresearcher.utils import (
     format_sections,
     format_sources,
     get_config_value,
+    invoke_llm,
     perplexity_search,
     perplexity_search_2,
     retry_with_backoff,
     tavily_search,
     tavily_search_async,
 )
-
-# Return type for schema classes
-T = TypeVar("T", bound=BaseModel)
 
 #########################################################################
 #
@@ -278,46 +275,12 @@ def _normalize_state(state: ReportState | SectionState | dict, state_class: type
     return state
 
 
-def _invoke_llm(provider: str, model: str, prompt: list[SystemMessage | HumanMessage], schema_class: type[T] = None) -> T:
-    """
-    Invoke an LLM to generate either unstructured content
-    or structured content according to a schema class.
-
-    Args:
-        provider: Model provider (e.g. 'openai', 'anthropic')
-        model: Model name to use (e.g. 'o1', 'laude-3-5-sonnet-latest')
-        prompt: prompt passing to the LLM
-        schema_class: Pydantic model class for structured output
-
-    Returns:
-        The structured response object
-    """
-    # Initialize model
-    llm = init_chat_model(
-        model_provider=provider,
-        model=model,
-    )
-    if schema_class is not None:
-        # LLM generates structured output
-        llm = llm.with_structured_output(schema_class)
-
-    # Generate response
-    try:
-        result = llm.invoke(prompt)
-        return result
-    except Exception as e:
-        logger.error(f"Error from structured LLM: {str(e)}")
-        if hasattr(e, "response") and hasattr(e.response, "json"):
-            logger.error(f"Error details: {e.response.json()}")
-        raise
-
-
 def _generate_queries(provider: str, model: str, instructions: str) -> list:
     """
     Generate search queries for the report planning
     """
 
-    results = _invoke_llm(
+    results = invoke_llm(
         provider=provider,
         model=model,
         prompt=[
@@ -344,7 +307,7 @@ def _generate_sections(provider: str, model: str, instructions: str) -> list:
         list: The sections of the report.
     """
 
-    results = _invoke_llm(
+    results = invoke_llm(
         provider=provider,
         model=model,
         prompt=[
@@ -517,7 +480,7 @@ def generate_queries(state: SectionState | dict, config: RunnableConfig) -> dict
     # Format system instructions
     system_instructions = query_writer_instructions_2.format(section_topic=section.description, number_of_queries=number_of_queries)
 
-    queries = _invoke_llm(
+    queries = invoke_llm(
         provider=writer_provider,
         model=writer_model_name,
         prompt=[
@@ -605,7 +568,7 @@ def write_section(state: SectionState | dict, config: RunnableConfig) -> Command
     provider = get_config_value(configurable.writer_provider)
     model = get_config_value(configurable.writer_model)
 
-    section_content = _invoke_llm(
+    section_content = invoke_llm(
         provider=provider,
         model=model,
         prompt=[
@@ -621,7 +584,7 @@ def write_section(state: SectionState | dict, config: RunnableConfig) -> Command
     section_grader_instructions_formatted = section_grader_instructions.format(section_topic=section.description, section=section.content)
 
     # Feedback
-    feedback = _invoke_llm(
+    feedback = invoke_llm(
         provider=provider,
         model=model,
         prompt=[
@@ -677,7 +640,7 @@ def write_final_sections(state: SectionState | dict, config: RunnableConfig) -> 
     provider = get_config_value(configurable.writer_provider)
     model = get_config_value(configurable.writer_model)
 
-    section_content = _invoke_llm(
+    section_content = invoke_llm(
         provider=provider,
         model=model,
         prompt=[

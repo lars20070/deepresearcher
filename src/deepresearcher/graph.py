@@ -3,7 +3,7 @@
 import json
 import os
 import re
-from typing import Literal
+from typing import Literal, TypeVar
 
 import pypandoc
 from langchain.chat_models import init_chat_model
@@ -53,6 +53,9 @@ from deepresearcher.utils import (
     tavily_search,
     tavily_search_async,
 )
+
+# Return type for schema classes
+T = TypeVar("T", bound=BaseModel)
 
 #########################################################################
 #
@@ -275,35 +278,57 @@ def _normalize_state(state: ReportState | SectionState | dict, state_class: type
     return state
 
 
-def _generate_queries(provider: str, model: str, instructions: str) -> list:
+def _invoke_structured_llm(provider: str, model: str, prompt: list[SystemMessage | HumanMessage], schema_class: type[T], temperature: float = 0) -> T:
     """
-    Generate search queries for the report planning
-    """
+    Invoke an LLM to generate structured content according to a schema class.
 
-    writer_model = init_chat_model(
+    Args:
+        provider: Model provider (e.g. 'openai', 'anthropic')
+        model: Model name to use (e.g. 'o1', 'laude-3-5-sonnet-latest')
+        prompt: prompt passing to the LLM
+        schema_class: Pydantic model class for structured output
+        temperature: Generation temperature (default: 0)
+
+    Returns:
+        The structured response object
+    """
+    # Initialize model
+    llm = init_chat_model(
         model_provider=provider,
         model=model,
-        temperature=0,
+        temperature=temperature,
     )
-    structured_llm = writer_model.with_structured_output(Queries)
+    structured_llm = llm.with_structured_output(schema_class)
 
-    # Generate queries
+    # Generate response
     try:
-        results = structured_llm.invoke(
-            [SystemMessage(content=instructions)]
-            + [HumanMessage(content="Generate search queries that will help with planning the sections of the report.")]
-        )
+        result = structured_llm.invoke(prompt)
+        return result
     except Exception as e:
         logger.error(f"Error from structured LLM: {str(e)}")
         if hasattr(e, "response") and hasattr(e.response, "json"):
             logger.error(f"Error details: {e.response.json()}")
         raise
+
+
+def _generate_queries(provider: str, model: str, instructions: str) -> list:
+    """
+    Generate search queries for the report planning
+    """
+
+    results = _invoke_structured_llm(
+        provider=provider,
+        model=model,
+        prompt=[
+            SystemMessage(content=instructions),
+            HumanMessage(content="Generate search queries that will help with planning the sections of the report."),
+        ],
+        schema_class=Queries,
+        temperature=0,
+    )
     logger.debug(f"Queries generated:\n{results.queries}")
 
-    # Web search
-    query_list = [query.search_query for query in results.queries]
-
-    return query_list
+    return [query.search_query for query in results.queries]
 
 
 def _generate_sections(provider: str, model: str, instructions: str) -> list:

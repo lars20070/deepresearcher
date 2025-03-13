@@ -602,11 +602,16 @@ def write_section(state: SectionState | dict, config: RunnableConfig) -> Command
     )
 
     # Generate section
-    writer_provider = get_config_value(configurable.writer_provider)
-    writer_model_name = get_config_value(configurable.writer_model)
-    writer_model = init_chat_model(model=writer_model_name, model_provider=writer_provider, temperature=0)
-    section_content = writer_model.invoke(
-        [SystemMessage(content=system_instructions)] + [HumanMessage(content="Generate a report section based on the provided sources.")]
+    provider = get_config_value(configurable.writer_provider)
+    model = get_config_value(configurable.writer_model)
+
+    section_content = _invoke_llm(
+        provider=provider,
+        model=model,
+        prompt=[
+            SystemMessage(content=system_instructions),
+            HumanMessage(content="Generate a report section based on the provided sources."),
+        ],
     )
 
     # Write content to the section object
@@ -616,10 +621,14 @@ def write_section(state: SectionState | dict, config: RunnableConfig) -> Command
     section_grader_instructions_formatted = section_grader_instructions.format(section_topic=section.description, section=section.content)
 
     # Feedback
-    structured_llm = writer_model.with_structured_output(Feedback)
-    feedback = structured_llm.invoke(
-        [SystemMessage(content=section_grader_instructions_formatted)]
-        + [HumanMessage(content="Grade the report and consider follow-up questions for missing information:")]
+    feedback = _invoke_llm(
+        provider=provider,
+        model=model,
+        prompt=[
+            SystemMessage(content=section_grader_instructions_formatted),
+            HumanMessage(content="Grade the report."),
+        ],
+        schema_class=Feedback,
     )
 
     if feedback.grade == "pass" or state.search_iterations >= configurable.max_search_depth:
@@ -671,7 +680,10 @@ def write_final_sections(state: SectionState | dict, config: RunnableConfig) -> 
     section_content = _invoke_llm(
         provider=provider,
         model=model,
-        prompt=[SystemMessage(content=system_instructions)] + [HumanMessage(content="Generate a report section based on the provided sources.")],
+        prompt=[
+            SystemMessage(content=system_instructions),
+            HumanMessage(content="Generate a report section based on the provided sources."),
+        ],
     )
 
     # Write content to section

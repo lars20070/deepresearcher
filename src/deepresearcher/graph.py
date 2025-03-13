@@ -278,9 +278,10 @@ def _normalize_state(state: ReportState | SectionState | dict, state_class: type
     return state
 
 
-def _invoke_structured_llm(provider: str, model: str, prompt: list[SystemMessage | HumanMessage], schema_class: type[T]) -> T:
+def _invoke_llm(provider: str, model: str, prompt: list[SystemMessage | HumanMessage], schema_class: type[T] = None) -> T:
     """
-    Invoke an LLM to generate structured content according to a schema class.
+    Invoke an LLM to generate either unstructured content
+    or structured content according to a schema class.
 
     Args:
         provider: Model provider (e.g. 'openai', 'anthropic')
@@ -296,11 +297,13 @@ def _invoke_structured_llm(provider: str, model: str, prompt: list[SystemMessage
         model_provider=provider,
         model=model,
     )
-    structured_llm = llm.with_structured_output(schema_class)
+    if schema_class is not None:
+        # LLM generates structured output
+        llm = llm.with_structured_output(schema_class)
 
     # Generate response
     try:
-        result = structured_llm.invoke(prompt)
+        result = llm.invoke(prompt)
         return result
     except Exception as e:
         logger.error(f"Error from structured LLM: {str(e)}")
@@ -314,7 +317,7 @@ def _generate_queries(provider: str, model: str, instructions: str) -> list:
     Generate search queries for the report planning
     """
 
-    results = _invoke_structured_llm(
+    results = _invoke_llm(
         provider=provider,
         model=model,
         prompt=[
@@ -341,7 +344,7 @@ def _generate_sections(provider: str, model: str, instructions: str) -> list:
         list: The sections of the report.
     """
 
-    results = _invoke_structured_llm(
+    results = _invoke_llm(
         provider=provider,
         model=model,
         prompt=[
@@ -510,15 +513,18 @@ def generate_queries(state: SectionState | dict, config: RunnableConfig) -> dict
     # Generate queries
     writer_provider = get_config_value(configurable.writer_provider)
     writer_model_name = get_config_value(configurable.writer_model)
-    writer_model = init_chat_model(model=writer_model_name, model_provider=writer_provider, temperature=0)
-    structured_llm = writer_model.with_structured_output(Queries)
 
     # Format system instructions
     system_instructions = query_writer_instructions_2.format(section_topic=section.description, number_of_queries=number_of_queries)
 
-    # Generate queries
-    queries = structured_llm.invoke(
-        [SystemMessage(content=system_instructions)] + [HumanMessage(content="Generate search queries on the provided topic.")]
+    queries = _invoke_llm(
+        provider=writer_provider,
+        model=writer_model_name,
+        prompt=[
+            SystemMessage(content=system_instructions),
+            HumanMessage(content="Generate search queries on the provided topic."),
+        ],
+        schema_class=Queries,
     )
 
     return {"search_queries": queries.queries}
@@ -659,11 +665,13 @@ def write_final_sections(state: SectionState | dict, config: RunnableConfig) -> 
     )
 
     # Generate section
-    writer_provider = get_config_value(configurable.writer_provider)
-    writer_model_name = get_config_value(configurable.writer_model)
-    writer_model = init_chat_model(model=writer_model_name, model_provider=writer_provider, temperature=0)
-    section_content = writer_model.invoke(
-        [SystemMessage(content=system_instructions)] + [HumanMessage(content="Generate a report section based on the provided sources.")]
+    provider = get_config_value(configurable.writer_provider)
+    model = get_config_value(configurable.writer_model)
+
+    section_content = _invoke_llm(
+        provider=provider,
+        model=model,
+        prompt=[SystemMessage(content=system_instructions)] + [HumanMessage(content="Generate a report section based on the provided sources.")],
     )
 
     # Write content to section

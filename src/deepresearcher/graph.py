@@ -278,7 +278,7 @@ def _normalize_state(state: ReportState | SectionState | dict, state_class: type
     return state
 
 
-def _invoke_structured_llm(provider: str, model: str, prompt: list[SystemMessage | HumanMessage], schema_class: type[T], temperature: float = 0) -> T:
+def _invoke_structured_llm(provider: str, model: str, prompt: list[SystemMessage | HumanMessage], schema_class: type[T]) -> T:
     """
     Invoke an LLM to generate structured content according to a schema class.
 
@@ -287,7 +287,6 @@ def _invoke_structured_llm(provider: str, model: str, prompt: list[SystemMessage
         model: Model name to use (e.g. 'o1', 'laude-3-5-sonnet-latest')
         prompt: prompt passing to the LLM
         schema_class: Pydantic model class for structured output
-        temperature: Generation temperature (default: 0)
 
     Returns:
         The structured response object
@@ -296,7 +295,6 @@ def _invoke_structured_llm(provider: str, model: str, prompt: list[SystemMessage
     llm = init_chat_model(
         model_provider=provider,
         model=model,
-        temperature=temperature,
     )
     structured_llm = llm.with_structured_output(schema_class)
 
@@ -324,7 +322,6 @@ def _generate_queries(provider: str, model: str, instructions: str) -> list:
             HumanMessage(content="Generate search queries that will help with planning the sections of the report."),
         ],
         schema_class=Queries,
-        temperature=0,
     )
     logger.debug(f"Queries generated:\n{results.queries}")
 
@@ -344,34 +341,21 @@ def _generate_sections(provider: str, model: str, instructions: str) -> list:
         list: The sections of the report.
     """
 
-    # Set the planner model
-    planner_llm = init_chat_model(
-        model_provider=provider,
+    results = _invoke_structured_llm(
+        provider=provider,
         model=model,
+        prompt=[
+            SystemMessage(content=instructions),
+            HumanMessage(
+                content="Generate the sections of the report. Your response must include a 'sections' field containing a list of sections. \
+                    Each section must have: name, description, plan, research, and content fields."
+            ),
+        ],
+        schema_class=Sections,
     )
+    logger.debug(f"Sections generated:\n{results.sections}")
 
-    # Generate sections
-    structured_llm = planner_llm.with_structured_output(Sections)
-    try:
-        report_sections = structured_llm.invoke(
-            [SystemMessage(content=instructions)]
-            + [
-                HumanMessage(
-                    content="Generate the sections of the report. Your response must include a 'sections' field containing a list of sections. \
-                        Each section must have: name, description, plan, research, and content fields."
-                )
-            ]
-        )
-    except Exception as e:
-        logger.error(f"Error from structured LLM: {str(e)}")
-        if hasattr(e, "response") and hasattr(e.response, "json"):
-            logger.error(f"Error details: {e.response.json()}")
-        raise
-
-    # Get sections
-    sections = report_sections.sections
-
-    return sections
+    return results.sections
 
 
 # Define nodes

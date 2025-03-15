@@ -5,6 +5,8 @@ import os
 
 import pytest
 from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_ollama import ChatOllama
+from pydantic import BaseModel
 
 from deepresearcher.logger import logger
 from deepresearcher.state import Feedback
@@ -110,6 +112,26 @@ def test_deduplicate_and_format_sources() -> None:
     assert "Third Article" in formatted
 
 
+def test_EXAMPLE_ollama_structured_output() -> None:
+    """Minimal example of generating structured output using a local Ollama model"""
+    logger.info("Minimal example of generating structured output using a local Ollama model.")
+
+    class Person(BaseModel):
+        age: int
+        name: str
+
+    model = ChatOllama(model="llama3.3")
+
+    model = model.with_structured_output(Person, method="json_schema")
+    result = model.invoke("My name is Bill and I am 27 years old.")
+    logger.debug(f"Structured output:\n{result}")
+
+    assert result.age is not None
+    assert result.age == 27
+    assert result.name is not None
+    assert "Bill" in result.name
+
+
 @pytest.mark.paid
 def test_invoke_llm(topic: str, load_env: None) -> None:
     """Test invoke_llm with both structured and unstructured output."""
@@ -141,7 +163,7 @@ def test_invoke_llm(topic: str, load_env: None) -> None:
     model = "gpt-4o"
     prompt = [
         SystemMessage(content="You are a helpful assistant."),
-        HumanMessage(content=f"Please provide feedback for research on {topic}. I do not really know what that is"),
+        HumanMessage(content=f"Please provide feedback for research on {topic}. I do not really know what that is."),
     ]
 
     structured_response = invoke_llm(

@@ -52,6 +52,7 @@ from deepresearcher.utils import (
     retry_with_backoff,
     tavily_search,
     tavily_search_async,
+    truncate_string,
 )
 
 #########################################################################
@@ -540,7 +541,7 @@ async def search_web(state: SectionState | dict, config: RunnableConfig) -> dict
         source_str = deduplicate_and_format_sources(search_results, max_tokens_per_source=1000, include_raw_content=False)
     else:
         raise ValueError(f"Unsupported search API: {configurable.search_api}")
-    logger.debug(f"Search results:\n{source_str}")
+    logger.debug(f"Search results:\n{truncate_string(source_str)}")
 
     return {"source_str": source_str, "search_iterations": state.search_iterations + 1}
 
@@ -576,7 +577,7 @@ def write_section(state: SectionState | dict, config: RunnableConfig) -> Command
             HumanMessage(content="Generate a report section based on the provided sources."),
         ],
     )
-    logger.debug(f"Section content:\n{section_content.content}")
+    logger.debug(f"Section content:\n{truncate_string(section_content.content)}")
 
     # Write content to the section object
     section.content = section_content.content

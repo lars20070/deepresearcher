@@ -467,3 +467,25 @@ def invoke_llm(provider: str, model: str, prompt: list[SystemMessage | HumanMess
             if hasattr(e, "response") and hasattr(e.response, "json"):
                 logger.error(f"Error details: {e.response.json()}")
             raise
+
+
+def truncate_string(string: str, max_length: int = 1000) -> str:
+    """
+    Truncates a string to a maximum length, preserving beginning and end.
+
+    Args:
+        string: The string to truncate
+        max_length: Maximum desired length including ellipsis
+
+    Returns:
+        Truncated string with ellipsis in the middle
+    """
+    if len(string) <= max_length:
+        return string
+
+    # Calculate how many characters to keep at each end
+    chars_per_end = (max_length - 3) // 2
+    start = string[:chars_per_end]
+    end = string[-chars_per_end:] if chars_per_end > 0 else ""
+
+    return f"{start}...{end}"

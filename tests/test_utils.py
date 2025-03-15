@@ -112,6 +112,7 @@ def test_deduplicate_and_format_sources() -> None:
     assert "Third Article" in formatted
 
 
+@pytest.mark.ollama
 def test_EXAMPLE_ollama_structured_output() -> None:
     """Minimal example of generating structured output using a local Ollama model"""
     logger.info("Minimal example of generating structured output using a local Ollama model.")

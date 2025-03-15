@@ -121,9 +121,7 @@ def test_EXAMPLE_ollama_structured_output() -> None:
         age: int
         name: str
 
-    model = ChatOllama(model="llama3.3")
-
-    model = model.with_structured_output(Person, method="json_schema")
+    model = ChatOllama(model="llama3.3").with_structured_output(Person, method="json_schema")
     result = model.invoke("My name is Bill and I am 27 years old.")
     logger.debug(f"Structured output:\n{result}")
 
@@ -179,3 +177,53 @@ def test_invoke_llm(topic: str, load_env: None) -> None:
     assert structured_response.grade in ["pass", "fail"]
     assert structured_response.follow_up_queries is not None
     assert len(structured_response.follow_up_queries) > 0
+
+
+@pytest.mark.ollama
+def test_invoke_llm_ollama(topic: str) -> None:
+    """Test invoke_llm with both structured and unstructured output."""
+
+    logger.info("Testing invoke_llm() method with unstructured output.")
+    provider = "ollama"
+    model = "llama3.3"
+
+    prompt = [
+        SystemMessage(content="You are a helpful assistant."),
+        HumanMessage(content=f"Write a short paragraph about {topic}."),
+    ]
+
+    unstructured_response = invoke_llm(
+        provider=provider,
+        model=model,
+        prompt=prompt,
+    )
+    logger.debug(f"Unstructured response:\n{unstructured_response}")
+
+    assert unstructured_response.content is not None
+    assert isinstance(unstructured_response.content, str)
+    assert len(unstructured_response.content) > 0
+    assert topic in unstructured_response.content.lower()
+
+    logger.info("Testing invoke_llm() method with structured output.")
+
+    provider = "ollama"
+    model = "llama3.3"
+    prompt = [
+        SystemMessage(content="You are a helpful assistant."),
+        HumanMessage(content=f"Please provide feedback for research on {topic}. I do not really know what that is."),
+    ]
+
+    structured_response = invoke_llm(
+        provider=provider,
+        model=model,
+        prompt=prompt,
+        schema_class=Feedback,
+    )
+    logger.debug(f"Structured response:\n{structured_response}")
+
+    assert structured_response.grade is not None
+    assert structured_response.grade in ["pass", "fail"]
+    assert structured_response.follow_up_queries is not None
+    assert len(structured_response.follow_up_queries) > 0
+
+    pass

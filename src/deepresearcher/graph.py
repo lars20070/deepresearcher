@@ -601,6 +601,7 @@ def write_section(state: SectionState | dict, config: RunnableConfig) -> Command
         ],
         schema_class=Feedback,
     )
+    logger.debug(f"Feedback received: {feedback.grade}")
 
     if feedback.grade == "pass" or state.search_iterations >= configurable.max_search_depth:
         # Publish the section to completed sections

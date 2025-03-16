@@ -541,6 +541,12 @@ async def search_web(state: SectionState | dict, config: RunnableConfig) -> dict
         source_str = deduplicate_and_format_sources(search_results, max_tokens_per_source=1000, include_raw_content=False)
     else:
         raise ValueError(f"Unsupported search API: {configurable.search_api}")
+
+    # Check for empty search results
+    if not source_str or source_str.strip() == "":
+        logger.error(f"No valid search results found. The search results are empty.\nSearch engine: {search_api}\nSearch queries:\n{query_list}")
+        raise ValueError(f"Search using {search_api} API returned no usable results.")
+
     logger.debug(f"Search results:\n{truncate_string(source_str)}")
 
     return {"source_str": source_str, "search_iterations": state.search_iterations + 1}

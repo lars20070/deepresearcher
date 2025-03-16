@@ -423,7 +423,7 @@ def invoke_llm(provider: str, model: str, prompt: list[SystemMessage | HumanMess
 
     Args:
         provider: Model provider e.g. 'ollama', 'openai', 'anthropic'
-        model: Model name to use e.g. 'o1', 'laude-3-5-sonnet-latest'
+        model: Model name to use e.g. 'o1', 'claude-3-5-sonnet-latest'
         prompt: prompt passing to the LLM
         schema_class: Pydantic model class for structured output
 

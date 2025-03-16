@@ -144,7 +144,8 @@ def test_graph_run(topic: str) -> None:
 
 
 @pytest.mark.paid
-def test_EXAMPLE_chat_model_anthropic(topic: str, load_env: None) -> None:
+@pytest.mark.example
+def test_chat_model_anthropic(topic: str, load_env: None) -> None:
     """
     Minimal example of a chat model in LangChain
     https://python.langchain.com/api_reference/langchain/chat_models.html#
@@ -176,7 +177,8 @@ def test_EXAMPLE_chat_model_anthropic(topic: str, load_env: None) -> None:
 
 
 @pytest.mark.paid
-def test_EXAMPLE_chat_model_openai(topic: str, load_env: None) -> None:
+@pytest.mark.example
+def test_chat_model_openai(topic: str, load_env: None) -> None:
     """
     Minimal example of a chat model in LangChain
     https://python.langchain.com/api_reference/langchain/chat_models.html#

@@ -88,5 +88,6 @@
       "pattern": "deepresearcher.log"
     },
   ],
-  "codeQL.createQuery.qlPackLocation": "${workspaceFolder}"
+  "codeQL.createQuery.qlPackLocation": "${workspaceFolder}",
+  "codeQL.githubDatabase.update": "never"
 }

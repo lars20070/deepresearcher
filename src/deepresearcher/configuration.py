@@ -17,6 +17,7 @@ class SearchAPI(Enum):
 
 
 class PlannerProvider(Enum):
+    ANTHROPIC = "anthropic"
     OPENAI = "openai"
     GROQ = "groq"
     OLLAMA = "ollama"

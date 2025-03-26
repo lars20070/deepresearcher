@@ -89,7 +89,8 @@ def test_configuration_from_env(monkeypatch: pytest.MonkeyPatch, env_value: str,
     assert config.search_api == expected_config  # Environment variable value overrides default value.
 
 
-def test_EXAMPLE_runnable() -> None:
+@pytest.mark.example
+def test_runnable() -> None:
     """
     Minimal example of the Runnable class
     """

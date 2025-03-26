@@ -8,7 +8,10 @@ from langchain.chat_models import init_chat_model
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
 
+from deepresearcher.configuration import DEFAULT_REPORT_STRUCTURE
 from deepresearcher.graph import (
+    _generate_queries,
+    _generate_sections,
     compile_final_report,
     finalize_summary,
     gather_completed_sections,
@@ -19,6 +22,7 @@ from deepresearcher.graph import (
     graph_report,
     human_feedback,
     reflect_on_summary,
+    report_planner_instructions,
     route_research,
     search_web,
     summarize_sources,
@@ -27,6 +31,7 @@ from deepresearcher.graph import (
     write_section,
 )
 from deepresearcher.logger import logger
+from deepresearcher.prompts import report_planner_query_writer_instructions
 from deepresearcher.state import ReportState, Section, SectionState, SummaryState
 
 
@@ -139,7 +144,8 @@ def test_graph_run(topic: str) -> None:
 
 
 @pytest.mark.paid
-def test_EXAMPLE_chat_model_anthropic(topic: str, load_env: None) -> None:
+@pytest.mark.example
+def test_chat_model_anthropic(topic: str, load_env: None) -> None:
     """
     Minimal example of a chat model in LangChain
     https://python.langchain.com/api_reference/langchain/chat_models.html#
@@ -171,7 +177,8 @@ def test_EXAMPLE_chat_model_anthropic(topic: str, load_env: None) -> None:
 
 
 @pytest.mark.paid
-def test_EXAMPLE_chat_model_openai(topic: str, load_env: None) -> None:
+@pytest.mark.example
+def test_chat_model_openai(topic: str, load_env: None) -> None:
     """
     Minimal example of a chat model in LangChain
     https://python.langchain.com/api_reference/langchain/chat_models.html#
@@ -211,13 +218,61 @@ def test_EXAMPLE_chat_model_openai(topic: str, load_env: None) -> None:
 
 
 @pytest.mark.paid
+def test__generate_queries(topic: str, load_env: None) -> None:
+    logger.info("Testing generation of search queries")
+
+    provider = "anthropic"
+    model = "claude-3-7-sonnet-latest"
+    instructions = report_planner_query_writer_instructions.format(
+        topic=topic,
+        report_organization=DEFAULT_REPORT_STRUCTURE,
+        number_of_queries=2,
+    )
+    queries = _generate_queries(
+        provider=provider,
+        model=model,
+        instructions=instructions,
+    )
+    logger.debug(f"Generated search queries:\n{queries}")
+
+    assert queries is not None
+    assert len(queries) > 0
+    assert queries[0] is not None
+    assert topic in queries[0]
+
+
+@pytest.mark.paid
+def test__generate_sections(topic: str, search_result: str, load_env: None) -> None:
+    logger.info("Testing generation of sections")
+
+    provider = "openai"
+    model = "o1"
+    instructions = report_planner_instructions.format(
+        topic=topic,
+        report_organization=DEFAULT_REPORT_STRUCTURE,
+        context=search_result,
+        feedback="Looks good.",
+    )
+    sections = _generate_sections(
+        provider=provider,
+        model=model,
+        instructions=instructions,
+    )
+    logger.debug(f"Generated sections:\n{sections}")
+
+    assert sections is not None
+    assert len(sections) > 0
+    assert sections[0] is not None
+
+
+@pytest.mark.paid
 @pytest.mark.asyncio
 async def test_generate_report_plan(topic: str, load_env: None) -> None:
     logger.info("Testing generation of the report plan.")
 
     state = ReportState(topic=topic)
     result = await generate_report_plan(state, config={})
-    logger.debug(f"Report plan: {result}")
+    logger.debug(f"Report plan:\n{result}")
 
 
 def test_human_feedback() -> None:

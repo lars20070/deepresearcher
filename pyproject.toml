@@ -1,6 +1,6 @@
 [project]
 name = "deepresearcher"
-version = "0.1.1"
+version = "0.1.2"
 description = "fully local web research and report writing assistant"
 readme = "README.md"
 authors = [{ name = "Lars Nilse", email = "l.nilse@dunelm.org.uk" }]
@@ -61,8 +61,12 @@ lint.ignore = [
 lint.pydocstyle.convention = "google"
 
 [tool.pytest.ini_options]
-addopts = "-m 'not paid'" # Skip tests that require a paid API key
+addopts = ["-m", "not paid"] # Skip tests that require a paid API key
 asyncio_default_fixture_loop_scope = "session" # Use a single event loop for all tests. Switch to "function" for a new event loop for every test (more isolation).
+markers = [
+  "paid: tests requiring paid APIs",
+  "example: examples which are not testing deepresearcher functionality",
+]
 
 [tool.coverage.run]
 branch = true

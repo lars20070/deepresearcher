@@ -38,11 +38,7 @@ The codebase is a copy of the [`ollama-deep-researcher`](https://github.com/lang
 
 * For understanding the codebase, please start with the `graph` and `graph_report` objects in [`src/deepresearcher/graph.py`](src/deepresearcher/graph.py).
 
-* Internally, LangGraph is passing `dict` objects between nodes. But all state objects are pydantic. That makes type coercion at runtime at the beginning of each node method necessary. Very awkward.
-  ```python
-  if isinstance(state, dict):
-    state = SectionState(**state)
-  ```
+* Internally, LangGraph is passing `dict` objects between nodes. But all state objects are pydantic. That makes type coercion at runtime at the beginning of each node method necessary, see `_normalize_state()` helper function. Very awkward.
 
 ![package diagram](./uml/packages.png "Deep Researcher package structure")
 <br>*Deep Researcher package structure*

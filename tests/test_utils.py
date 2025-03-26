@@ -4,9 +4,13 @@ import json
 import os
 
 import pytest
+from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_ollama import ChatOllama
+from pydantic import BaseModel
 
 from deepresearcher.logger import logger
-from deepresearcher.utils import deduplicate_and_format_sources, duckduckgo_search, format_sources, perplexity_search, tavily_search
+from deepresearcher.state import Feedback
+from deepresearcher.utils import deduplicate_and_format_sources, duckduckgo_search, format_sources, invoke_llm, perplexity_search, tavily_search
 
 
 def test_duckduckgo_search(topic: str, load_env: None) -> None:
@@ -106,3 +110,121 @@ def test_deduplicate_and_format_sources() -> None:
     assert "First Article" in formatted
     assert "Second Article" not in formatted  # Duplicate should be removed
     assert "Third Article" in formatted
+
+
+@pytest.mark.ollama
+@pytest.mark.example
+def test_ollama_structured_output() -> None:
+    """Minimal example of generating structured output using a local Ollama model"""
+    logger.info("Minimal example of generating structured output using a local Ollama model.")
+
+    class Person(BaseModel):
+        age: int
+        name: str
+
+    model = ChatOllama(model="llama3.3").with_structured_output(Person, method="json_schema")
+    result = model.invoke("My name is Bill and I am 27 years old.")
+    logger.debug(f"Structured output:\n{result}")
+
+    assert result.age is not None
+    assert result.age == 27
+    assert result.name is not None
+    assert "Bill" in result.name
+
+
+@pytest.mark.paid
+def test_invoke_llm(topic: str, load_env: None) -> None:
+    """Test invoke_llm with both structured and unstructured output."""
+
+    logger.info("Testing invoke_llm() method with unstructured output.")
+    provider = "openai"
+    model = "gpt-4o"
+
+    prompt = [
+        SystemMessage(content="You are a helpful assistant."),
+        HumanMessage(content=f"Write a short paragraph about {topic}."),
+    ]
+
+    unstructured_response = invoke_llm(
+        provider=provider,
+        model=model,
+        prompt=prompt,
+    )
+    logger.debug(f"Unstructured response:\n{unstructured_response}")
+
+    assert unstructured_response.content is not None
+    assert isinstance(unstructured_response.content, str)
+    assert len(unstructured_response.content) > 0
+    assert topic in unstructured_response.content.lower()
+
+    logger.info("Testing invoke_llm() method with structured output.")
+
+    provider = "openai"
+    model = "gpt-4o"
+    prompt = [
+        SystemMessage(content="You are a helpful assistant."),
+        HumanMessage(content=f"Please provide feedback for research on {topic}. I do not really know what that is."),
+    ]
+
+    structured_response = invoke_llm(
+        provider=provider,
+        model=model,
+        prompt=prompt,
+        schema_class=Feedback,
+    )
+    logger.debug(f"Structured response:\n{structured_response}")
+
+    assert structured_response.grade is not None
+    assert structured_response.grade in ["pass", "fail"]
+    assert structured_response.follow_up_queries is not None
+    assert len(structured_response.follow_up_queries) > 0
+
+
+@pytest.mark.ollama
+def test_invoke_llm_ollama(topic: str) -> None:
+    """Test invoke_llm with both structured and unstructured output."""
+
+    logger.info("Testing invoke_llm() method with unstructured output.")
+    provider = "ollama"
+    model = "llama3.3"
+
+    prompt = [
+        SystemMessage(content="You are a helpful assistant."),
+        HumanMessage(content=f"Write a short paragraph about {topic}."),
+    ]
+
+    unstructured_response = invoke_llm(
+        provider=provider,
+        model=model,
+        prompt=prompt,
+    )
+    logger.debug(f"Unstructured response:\n{unstructured_response}")
+
+    assert unstructured_response.content is not None
+    assert isinstance(unstructured_response.content, str)
+    assert len(unstructured_response.content) > 0
+    assert topic in unstructured_response.content.lower()
+
+    logger.info("Testing invoke_llm() method with structured output.")
+
+    provider = "ollama"
+    model = "llama3.3"
+    prompt = [
+        SystemMessage(content="You are a helpful assistant."),
+        HumanMessage(content=f"Please provide feedback for research on {topic}. I do not really know what that is."),
+    ]
+
+    structured_response = invoke_llm(
+        provider=provider,
+        model=model,
+        prompt=prompt,
+        schema_class=Feedback,
+    )
+    logger.debug(f"Structured response:\n{structured_response}")
+
+    assert structured_response.grade is not None
+    assert structured_response.grade in ["pass", "fail"]
+    assert structured_response.follow_up_queries is not None
+    assert len(structured_response.follow_up_queries) > 0
+
+    pass

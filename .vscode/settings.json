@@ -79,7 +79,8 @@
     }
   ],
   "shellcheck.ignorePatterns": {
-    "**/.env-example": true,
+    "**/.env.example": true,
+    "**/.env": true,
   },
   "logViewer.watch": [
     {
@@ -87,5 +88,6 @@
       "pattern": "deepresearcher.log"
     },
   ],
-  "codeQL.createQuery.qlPackLocation": "${workspaceFolder}"
+  "codeQL.createQuery.qlPackLocation": "${workspaceFolder}",
+  "codeQL.githubDatabase.update": "never"
 }

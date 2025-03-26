@@ -6,7 +6,6 @@ import re
 from typing import Literal
 
 import pypandoc
-from langchain.chat_models import init_chat_model
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_ollama import ChatOllama
@@ -47,11 +46,13 @@ from deepresearcher.utils import (
     format_sections,
     format_sources,
     get_config_value,
+    invoke_llm,
     perplexity_search,
     perplexity_search_2,
     retry_with_backoff,
     tavily_search,
     tavily_search_async,
+    truncate_string,
 )
 
 #########################################################################
@@ -275,6 +276,55 @@ def _normalize_state(state: ReportState | SectionState | dict, state_class: type
     return state
 
 
+def _generate_queries(provider: str, model: str, instructions: str) -> list:
+    """
+    Generate search queries for the report planning
+    """
+
+    results = invoke_llm(
+        provider=provider,
+        model=model,
+        prompt=[
+            SystemMessage(content=instructions),
+            HumanMessage(content="Generate search queries that will help with planning the sections of the report."),
+        ],
+        schema_class=Queries,
+    )
+    logger.debug(f"Queries generated:\n{results.queries}")
+
+    return [query.search_query for query in results.queries]
+
+
+def _generate_sections(provider: str, model: str, instructions: str) -> list:
+    """
+    Generate sections of the report
+
+    Args:
+        provider (str): The provider of the model
+        model (str): The model to use
+        instructions (str): The instructions to generate the sections
+
+    Returns:
+        list: The sections of the report.
+    """
+
+    results = invoke_llm(
+        provider=provider,
+        model=model,
+        prompt=[
+            SystemMessage(content=instructions),
+            HumanMessage(
+                content="Generate the sections of the report. Your response must include a 'sections' field containing a list of sections. \
+                    Each section must have: name, description, plan, research, and content fields."
+            ),
+        ],
+        schema_class=Sections,
+    )
+    logger.debug(f"Sections generated:\n{results.sections}")
+
+    return results.sections
+
+
 # Define nodes
 @retry_with_backoff
 async def generate_report_plan(state: ReportState | dict, config: RunnableConfig) -> dict:
@@ -296,36 +346,23 @@ async def generate_report_plan(state: ReportState | dict, config: RunnableConfig
     if isinstance(report_structure, dict):
         report_structure = str(report_structure)
 
-    # Set writer model (model used for query writing and section writing)
-    writer_provider = get_config_value(configurable.writer_provider)
-    writer_model_name = get_config_value(configurable.writer_model)
-    logger.debug(f"Writer provider: {writer_provider}")
-    logger.debug(f"Writer model: {writer_model_name}")
-
-    writer_model = init_chat_model(model=writer_model_name, model_provider=writer_provider, temperature=0)
-    structured_llm = writer_model.with_structured_output(Queries)
-
     # Format system instructions
     system_instructions_query = report_planner_query_writer_instructions.format(
         topic=topic, report_organization=report_structure, number_of_queries=number_of_queries
     )
     logger.debug(f"System instructions:\n{system_instructions_query}")
 
-    # Generate queries
-    try:
-        results = structured_llm.invoke(
-            [SystemMessage(content=system_instructions_query)]
-            + [HumanMessage(content="Generate search queries that will help with planning the sections of the report.")]
-        )
-    except Exception as e:
-        logger.error(f"Error from structured LLM: {str(e)}")
-        if hasattr(e, "response") and hasattr(e.response, "json"):
-            logger.error(f"Error details: {e.response.json()}")
-        raise
-    logger.debug(f"Queries generated:\n{results.queries}")
+    # Set writer model (model used for query writing and section writing)
+    writer_provider = get_config_value(configurable.writer_provider)
+    writer_model_name = get_config_value(configurable.writer_model)
+    logger.debug(f"Writer provider: {writer_provider}")
+    logger.debug(f"Writer model: {writer_model_name}")
 
-    # Web search
-    query_list = [query.search_query for query in results.queries]
+    query_list = _generate_queries(
+        provider=writer_provider,
+        model=writer_model_name,
+        instructions=system_instructions_query,
+    )
 
     # Get the search API
     search_api = get_config_value(configurable.search_api)
@@ -359,7 +396,10 @@ async def generate_report_plan(state: ReportState | dict, config: RunnableConfig
 
     # Format system instructions
     system_instructions_sections = report_planner_instructions.format(
-        topic=topic, report_organization=report_structure, context=source_str, feedback=feedback
+        topic=topic,
+        report_organization=report_structure,
+        context=source_str,
+        feedback=feedback,
     )
 
     # Set the planner provider
@@ -376,29 +416,11 @@ async def generate_report_plan(state: ReportState | dict, config: RunnableConfig
     logger.debug(f"Planner provider: {planner_provider}")
     logger.debug(f"Planner model: {planner_model}")
 
-    # Set the planner model
-    planner_llm = init_chat_model(model=planner_model, model_provider=planner_provider)
-
-    # Generate sections
-    structured_llm = planner_llm.with_structured_output(Sections)
-    try:
-        report_sections = structured_llm.invoke(
-            [SystemMessage(content=system_instructions_sections)]
-            + [
-                HumanMessage(
-                    content="Generate the sections of the report. Your response must include a 'sections' field containing a list of sections. \
-                        Each section must have: name, description, plan, research, and content fields."
-                )
-            ]
-        )
-    except Exception as e:
-        logger.error(f"Error from structured LLM: {str(e)}")
-        if hasattr(e, "response") and hasattr(e.response, "json"):
-            logger.error(f"Error details: {e.response.json()}")
-        raise
-
-    # Get sections
-    sections = report_sections.sections
+    sections = _generate_sections(
+        provider=planner_provider,
+        model=planner_model,
+        instructions=system_instructions_sections,
+    )
 
     return {"sections": sections}
 
@@ -454,15 +476,18 @@ def generate_queries(state: SectionState | dict, config: RunnableConfig) -> dict
     # Generate queries
     writer_provider = get_config_value(configurable.writer_provider)
     writer_model_name = get_config_value(configurable.writer_model)
-    writer_model = init_chat_model(model=writer_model_name, model_provider=writer_provider, temperature=0)
-    structured_llm = writer_model.with_structured_output(Queries)
 
     # Format system instructions
     system_instructions = query_writer_instructions_2.format(section_topic=section.description, number_of_queries=number_of_queries)
 
-    # Generate queries
-    queries = structured_llm.invoke(
-        [SystemMessage(content=system_instructions)] + [HumanMessage(content="Generate search queries on the provided topic.")]
+    queries = invoke_llm(
+        provider=writer_provider,
+        model=writer_model_name,
+        prompt=[
+            SystemMessage(content=system_instructions),
+            HumanMessage(content="Generate search queries on the provided topic."),
+        ],
+        schema_class=Queries,
     )
 
     return {"search_queries": queries.queries}
@@ -517,6 +542,13 @@ async def search_web(state: SectionState | dict, config: RunnableConfig) -> dict
     else:
         raise ValueError(f"Unsupported search API: {configurable.search_api}")
 
+    # Check for empty search results
+    if not source_str or source_str.strip() == "":
+        logger.error(f"No valid search results found. The search results are empty.\nSearch engine: {search_api}\nSearch queries:\n{query_list}")
+        raise ValueError(f"Search using {search_api} API returned no usable results.")
+
+    logger.debug(f"Search results:\n{truncate_string(source_str)}")
+
     return {"source_str": source_str, "search_iterations": state.search_iterations + 1}
 
 
@@ -540,12 +572,18 @@ def write_section(state: SectionState | dict, config: RunnableConfig) -> Command
     )
 
     # Generate section
-    writer_provider = get_config_value(configurable.writer_provider)
-    writer_model_name = get_config_value(configurable.writer_model)
-    writer_model = init_chat_model(model=writer_model_name, model_provider=writer_provider, temperature=0)
-    section_content = writer_model.invoke(
-        [SystemMessage(content=system_instructions)] + [HumanMessage(content="Generate a report section based on the provided sources.")]
+    provider = get_config_value(configurable.writer_provider)
+    model = get_config_value(configurable.writer_model)
+
+    section_content = invoke_llm(
+        provider=provider,
+        model=model,
+        prompt=[
+            SystemMessage(content=system_instructions),
+            HumanMessage(content="Generate a report section based on the provided sources."),
+        ],
     )
+    logger.debug(f"Section content:\n{truncate_string(section_content.content)}")
 
     # Write content to the section object
     section.content = section_content.content
@@ -554,11 +592,16 @@ def write_section(state: SectionState | dict, config: RunnableConfig) -> Command
     section_grader_instructions_formatted = section_grader_instructions.format(section_topic=section.description, section=section.content)
 
     # Feedback
-    structured_llm = writer_model.with_structured_output(Feedback)
-    feedback = structured_llm.invoke(
-        [SystemMessage(content=section_grader_instructions_formatted)]
-        + [HumanMessage(content="Grade the report and consider follow-up questions for missing information:")]
+    feedback = invoke_llm(
+        provider=provider,
+        model=model,
+        prompt=[
+            SystemMessage(content=section_grader_instructions_formatted),
+            HumanMessage(content="Grade the report."),
+        ],
+        schema_class=Feedback,
     )
+    logger.debug(f"Feedback received: {feedback.grade}")
 
     if feedback.grade == "pass" or state.search_iterations >= configurable.max_search_depth:
         # Publish the section to completed sections
@@ -603,11 +646,16 @@ def write_final_sections(state: SectionState | dict, config: RunnableConfig) -> 
     )
 
     # Generate section
-    writer_provider = get_config_value(configurable.writer_provider)
-    writer_model_name = get_config_value(configurable.writer_model)
-    writer_model = init_chat_model(model=writer_model_name, model_provider=writer_provider, temperature=0)
-    section_content = writer_model.invoke(
-        [SystemMessage(content=system_instructions)] + [HumanMessage(content="Generate a report section based on the provided sources.")]
+    provider = get_config_value(configurable.writer_provider)
+    model = get_config_value(configurable.writer_model)
+
+    section_content = invoke_llm(
+        provider=provider,
+        model=model,
+        prompt=[
+            SystemMessage(content=system_instructions),
+            HumanMessage(content="Generate a report section based on the provided sources."),
+        ],
     )
 
     # Write content to section
